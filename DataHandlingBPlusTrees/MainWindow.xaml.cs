@@ -23,6 +23,9 @@ namespace DataHandlingBPlusTrees
         public MainWindow()
         {
             InitializeComponent();
+
+            int degree = 4;
+            BPlusTree tree = new BPlusTree(degree);
         }
     }
 }
