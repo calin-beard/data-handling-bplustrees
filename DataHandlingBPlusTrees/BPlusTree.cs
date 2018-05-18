@@ -10,8 +10,6 @@ namespace DataHandlingBPlusTrees
     {
         public Node Root { get; private set; }
 
-        public BPlusTree() { }
-
         public BPlusTree(int degree)
         {
             Node.Degree = degree;
@@ -23,45 +21,49 @@ namespace DataHandlingBPlusTrees
             Node.Degree = degree;
         }
 
-        private Tuple<Node, int> Search(string value)
+        public Tuple<Node, int> Search(string value)
         {
-            int i = -1;
+            int index = -1;
             Node currentNode = this.Root;
             while (!currentNode.isLeaf())
             {
-                foreach (string key in currentNode.Keys)
+                for (int i = 0; i < currentNode.Keys.Count; i++)
                 {
-                    if (value.CompareTo(key) <= 0)
+                    if (value.CompareTo(currentNode.Keys[i]) <= 0)
                     {
-                        i = currentNode.Keys.IndexOf(key);
+                        index = i;
                     }
                 }
 
-                if (i < 0)
+                if (index < 0)
                 {
                     currentNode = currentNode.Children.Last();
                 }
-                else if (value.CompareTo(currentNode.Keys[i]) == 0)
+                else if (value.CompareTo(currentNode.Keys[index]) == 0)
                 {
-                    currentNode = currentNode.Children[i + 1];
+                    currentNode = currentNode.Children[index + 1];
                 }
                 else
                 {
-                    currentNode = currentNode.Children[i];
+                    currentNode = currentNode.Children[index];
                 }
             }
 
             if (currentNode.isLeaf())
             {
-                foreach (string key in currentNode.Keys)
+                for (int i = 0; i < currentNode.Keys.Count; i++)
                 {
-                    if (value.CompareTo(key) == 0)
+                    if (value.CompareTo(currentNode.Keys[i]) == 0)
                     {
-                        return new Tuple<Node, int>(currentNode, currentNode.Keys.IndexOf(value));
+                        return new Tuple<Node, int>(currentNode, i);
                     }
-                    else
+                    else if (value.CompareTo(currentNode.Keys[i]) < 0)
                     {
-                        return null;
+                        return new Tuple<Node, int>(currentNode, i - 1);
+                    }
+                    if (i == currentNode.Keys.Count - 1)
+                    {
+                        return new Tuple<Node, int>(currentNode, i + 1);
                     }
                 }
             }
@@ -70,11 +72,11 @@ namespace DataHandlingBPlusTrees
 
         private Node SplitNode(Node target)
         {
-            Node brother = new Node(target.Parent);
+            Node brother = new Node(target.Parent, target.isLeaf());
             //add keys and records to newTarget, starting with the key Ceiling(degree/2)
             //the pointers and keys in the documentation start at 1
             //here, 0 based list index is used
-            for (int i = Node.SecondHalfFirstIndex; i <= target.Keys.Count; i++)
+            for (int i = target.SecondHalfFirstIndex; i < target.Keys.Count; i++)
             {
                 //add key to brother
                 brother.Keys.Add(target.Keys[i]);
@@ -105,11 +107,19 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        private void Add(string value, Record pointer)
+        public void AddMultiple(Dictionary<string, Record> searchKeys)
+        {
+            foreach(KeyValuePair<string, Record> searchKey in searchKeys)
+            {
+                this.Add(searchKey.Key, searchKey.Value);
+            }
+        }
+
+        public void Add(string value, Record pointer)
         {
             if (this.Root == null)
             {
-                this.Root = new Node();
+                this.Root = new Node(value, pointer);
             }
             else
             {
@@ -138,9 +148,11 @@ namespace DataHandlingBPlusTrees
 
         private void AddToParent(Node which, string value, Node brother)
         {
-            if (which == this.Root)
+            if (which.isRoot())
             {
                 this.Root = new Node(null, value, which, brother);
+                which.Parent = this.Root;
+                brother.Parent = this.Root;
             }
             else
             {
@@ -159,13 +171,13 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        private void Update(string value)
+        public void Update(string value)
         {
             //TO DO
             //should use Remove then Add
         }
 
-        private void Remove(string value)
+        public void Remove(string value)
         {
             //TO DO
             Tuple<Node, int> searchResult = Search(value);
@@ -212,5 +224,4 @@ namespace DataHandlingBPlusTrees
 
         }
     }
-}
 }

@@ -7,6 +7,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <StackPanel Name="Main" HorizontalAlignment="Left" Height="194" Margin="151,109,0,0" VerticalAlignment="Top" Width="471"/>
     </Grid>
 </Window>

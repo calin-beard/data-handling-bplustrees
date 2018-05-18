@@ -10,6 +10,8 @@ namespace DataHandlingBPlusTrees
     {
         public Dictionary<string, string> Data;
 
+        public Record() { }
+
         public Record(Dictionary<string, string> data)
         {
             this.Data = new Dictionary<string, string>(data);

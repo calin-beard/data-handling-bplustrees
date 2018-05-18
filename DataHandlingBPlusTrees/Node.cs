@@ -10,44 +10,8 @@ namespace DataHandlingBPlusTrees
     {
         //properties for "magic numbers" for the node
         public static int Degree { get; set; }
-        private int minkeys;
-        public int MinKeys
-        {
-            get
-            {
-                return this.minkeys;
-            }
-            set
-            {
-                if (this.isLeaf())
-                {
-                    this.minkeys = (int)Math.Ceiling((decimal)Node.Degree - 1 / 2);
-                }
-                else
-                {
-                    this.minkeys = (int)Math.Ceiling((decimal)Node.Degree / 2);
-                }
-            }
-        }
-        private int maxKeys;
-        public int MaxKeys
-        {
-            get
-            {
-                return this.maxKeys;
-            }
-            set
-            {
-                if (this.isLeaf())
-                {
-                    this.maxKeys = Node.Degree - 1;
-                }
-                else
-                {
-                    this.maxKeys = Node.Degree;
-                }
-            }
-        }
+        public int MinKeys { get; private set; }
+        public int MaxKeys { get; private set; }
         private int minChildren;
         private int minRecords;
         public int MinPointers
@@ -63,15 +27,15 @@ namespace DataHandlingBPlusTrees
                     return this.minChildren;
                 }
             }
-            set
+            private set
             {
                 if (this.isLeaf())
                 {
-                    this.minRecords = this.MinKeys;
+                    this.minRecords = value;
                 }
                 else
                 {
-                    this.minChildren = this.MinKeys + 1;
+                    this.minChildren = value;
                 }
             }
         }
@@ -94,27 +58,15 @@ namespace DataHandlingBPlusTrees
             {
                 if (this.isLeaf())
                 {
-                    this.maxRecords = this.MaxKeys;
+                    this.maxRecords = value;
                 }
                 else
                 {
-                    this.maxChildren = this.MaxKeys + 1;
+                    this.maxChildren = value;
                 }
             }
         }
-        
-        private static int secondHalfFirstIndex;
-        public static int SecondHalfFirstIndex
-        {
-            get
-            {
-                return secondHalfFirstIndex;
-            }
-            set
-            {
-                secondHalfFirstIndex = (int)Math.Ceiling((decimal)Node.Degree / 2 + 1);
-            }
-        }
+        public int SecondHalfFirstIndex { get; } = (int)((double)Node.Degree / 2 + 1);
 
         //parent and keys
         public Node Parent { get; set; }
@@ -127,14 +79,33 @@ namespace DataHandlingBPlusTrees
         public List<Record> Records { get; }
         public Node NextNode { get; set; }
 
-        public Node() { }
-
-        public Node(Node parent)
+        public Node()
         {
-            this.Parent = parent;
+            this.MinKeys = this.isLeaf() ? (int)Math.Ceiling(((decimal)Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2);
+            this.MaxKeys = this.isLeaf() ? Node.Degree - 1 : Node.Degree;
+            this.MinPointers = this.isLeaf() ? this.MinKeys : this.MinKeys + 1;
+            this.MaxPointers = this.isLeaf() ? this.MaxKeys : this.MaxKeys + 1;
         }
 
-        public Node(Node parent, string k, Node child1, Node child2)
+        public Node(Node parent, bool isLeaf = false) : this()
+        {
+            this.Parent = parent;
+            this.Keys = new List<string>();
+            if (isLeaf)
+            {
+                this.Records = new List<Record>();
+            }
+        }
+
+        public Node(string k, Record r) : this()
+        {
+            this.Keys = new List<string>();
+            this.Keys.Add(k);
+            this.Records = new List<Record>();
+            this.Records.Add(r);
+        }
+
+        public Node(Node parent, string k, Node child1, Node child2) : this()
         {
             //TO DO
             this.Parent = parent;
@@ -157,7 +128,7 @@ namespace DataHandlingBPlusTrees
 
         public bool isLeaf()
         {
-            return Records.Any();
+            return this.Records != null ? true : false;
         }
 
         public override string ToString()
