@@ -59,7 +59,7 @@ namespace DataHandlingBPlusTrees
                     }
                     else if (value.CompareTo(currentNode.Keys[i]) < 0)
                     {
-                        return new Tuple<Node, int>(currentNode, i - 1);
+                        return new Tuple<Node, int>(currentNode, i);
                     }
                     if (i == currentNode.Keys.Count - 1)
                     {
@@ -127,7 +127,7 @@ namespace DataHandlingBPlusTrees
                 Node target = searchResult.Item1;
                 int index = searchResult.Item2;
 
-                if (target.Keys.Count < Node.Degree - 1)
+                if (target.Keys.Count < target.MaxKeys)
                 {
                     AddToLeaf(target, index, value, pointer);
                 }
@@ -157,10 +157,10 @@ namespace DataHandlingBPlusTrees
             else
             {
                 Node parent = which.Parent;
-                if (parent.Children.Count < Node.Degree)
+                if (parent.Children.Count < parent.MaxPointers - 1)
                 {
                     int whichIndex = parent.Children.IndexOf(which);
-                    parent.Keys.Insert(whichIndex + 1, value);
+                    parent.Keys.Insert(whichIndex, value);
                     parent.Children.Insert(whichIndex + 1, brother);
                 }
                 else

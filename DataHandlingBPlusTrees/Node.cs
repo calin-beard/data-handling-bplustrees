@@ -8,7 +8,7 @@ namespace DataHandlingBPlusTrees
 {
     class Node
     {
-        //properties for "magic numbers" for the node
+        //properties for "magic numbers" of the node
         public static int Degree { get; set; }
         public int MinKeys { get; private set; }
         public int MaxKeys { get; private set; }
