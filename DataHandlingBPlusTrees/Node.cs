@@ -10,6 +10,7 @@ namespace DataHandlingBPlusTrees
     {
         //properties for "magic numbers" of the node
         public static int Degree { get; set; }
+
         public int MinKeys { get; private set; }
         public int MaxKeys { get; private set; }
         private int minChildren;
@@ -85,6 +86,16 @@ namespace DataHandlingBPlusTrees
             this.MaxKeys = this.isLeaf() ? Node.Degree - 1 : Node.Degree;
             this.MinPointers = this.isLeaf() ? this.MinKeys : this.MinKeys + 1;
             this.MaxPointers = this.isLeaf() ? this.MaxKeys : this.MaxKeys + 1;
+        }
+
+        //copy constructor
+        public Node(Node n) : this()
+        {
+            this.Parent = n.Parent;
+            this.Keys = new List<string>(n.Keys);
+            this.Children = new List<Node>(n.Children);
+            this.Records = new List<Record>(n.Records);
+            this.NextNode = n.NextNode;
         }
 
         public Node(Node parent, bool isLeaf = false) : this()

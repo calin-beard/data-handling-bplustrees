@@ -109,7 +109,7 @@ namespace DataHandlingBPlusTrees
 
         public void AddMultiple(Dictionary<string, Record> searchKeys)
         {
-            foreach(KeyValuePair<string, Record> searchKey in searchKeys)
+            foreach (KeyValuePair<string, Record> searchKey in searchKeys)
             {
                 this.Add(searchKey.Key, searchKey.Value);
             }
@@ -187,6 +187,7 @@ namespace DataHandlingBPlusTrees
             RemoveEntry(target, value, targetRecord);
         }
 
+        //needs to be recursive and also take a Node as the 3rd argument
         private void RemoveEntry(Node target, string value, Record targetRecord)
         {
             target.Keys.Remove(value);
@@ -199,29 +200,92 @@ namespace DataHandlingBPlusTrees
             else if (target.Keys.Count < target.MinKeys)
             {
                 int indexOfTargetInParent = target.Parent.Children.IndexOf(target);
+                int indexOfBrotherInParent;
+                string valueBetween = "";
                 Node brother = new Node();
                 if (indexOfTargetInParent > 0)
                 {
                     brother = target.Parent.Children[indexOfTargetInParent - 1];
-                    string valueBetween = target.Parent.Keys[indexOfTargetInParent - 1];
+                    valueBetween = target.Parent.Keys[indexOfTargetInParent - 1];
                 }
                 else if (indexOfTargetInParent < target.Parent.MaxPointers)
                 {
                     brother = target.Parent.Children[indexOfTargetInParent + 1];
-                    string valueBetween = target.Parent.Keys[indexOfTargetInParent + 1];
+                    valueBetween = target.Parent.Keys[indexOfTargetInParent + 1];
                 }
+                indexOfBrotherInParent = brother.Parent.Children.IndexOf(brother);
                 if (target.Keys.Count + brother.Keys.Count <= target.MaxKeys)
                 {
                     //if the keys from both nodes fit into 1
                     //coalesce the nodes
                     //TO DO 
+                    if (indexOfTargetInParent < indexOfBrotherInParent)
+                    {
+                        Node temp = new Node(target);
+                        target = new Node(brother);
+                        brother = new Node(temp);
+                        if (!target.isLeaf())
+                        {
+                            brother.Keys.AddRange(target.Keys);
+                            brother.Children.AddRange(target.Children);
+                        }
+                        else
+                        {
+                            brother.Keys.AddRange(target.Keys);
+                            brother.Records.AddRange(target.Records);
+                            brother.NextNode = target.NextNode;
+                            //TO ADD after updating the function arguments
+                            //RemoveEntry(target.Parent, valueBetween, target);
+                        }
+                    }
                 }
                 else
                 {
-
+                    if (indexOfBrotherInParent < indexOfTargetInParent)
+                    {
+                        if (!target.isLeaf())
+                        {
+                            Node lastChildOfBrother = brother.Children.Last();
+                            target.Keys.Insert(0, valueBetween);
+                            target.Children.Insert(0, lastChildOfBrother);
+                            target.Parent.Keys[target.Parent.Keys.IndexOf(valueBetween)] = brother.Keys.Last();
+                            brother.Keys.RemoveAt(brother.Keys.Count - 1);
+                            brother.Children.RemoveAt(brother.Children.Count - 1);
+                        }
+                        else
+                        {
+                            Record lastRecordOfBrother = brother.Records.Last();
+                            target.Keys.Insert(0, valueBetween);
+                            target.Records.Insert(0, lastRecordOfBrother);
+                            target.Parent.Keys[target.Parent.Keys.IndexOf(valueBetween)] = brother.Keys.Last();
+                            brother.Keys.RemoveAt(brother.Keys.Count - 1);
+                            brother.Records.RemoveAt(brother.Records.Count - 1);
+                        }
+                    }
+                    else
+                    {
+                        if (!target.isLeaf())
+                        {
+                            Node firstChildOfBrother = brother.Children.First();
+                            target.Keys.Add(valueBetween);
+                            target.Children.Add(firstChildOfBrother);
+                            target.Parent.Keys[target.Parent.Keys.IndexOf(valueBetween)] = brother.Keys.First();
+                            brother.Keys.RemoveAt(0);
+                            brother.Children.RemoveAt(0);
+                        }
+                        else
+                        {
+                            Record firstRecordOfBrother = brother.Records.First();
+                            target.Keys.Add(valueBetween);
+                            target.Records.Add(firstRecordOfBrother);
+                            target.Parent.Keys[target.Parent.Keys.IndexOf(valueBetween)] = brother.Keys.First();
+                            brother.Keys.RemoveAt(0);
+                            brother.Keys.RemoveAt(0);
+                        }
+                    }
                 }
-            }
 
+            }
         }
     }
 }
