@@ -37,16 +37,16 @@ namespace DataHandlingBPlusTrees
 
             Dictionary<string, Record> searchKeys = new Dictionary<string, Record>
             {
-                { "9", new Record()},
-                { "8", new Record()},
-                { "7", new Record()},
-                { "6", new Record()},
-                { "5", new Record()},
-                { "4", new Record()},
-                { "3", new Record()},
-                { "2", new Record()},
-                { "1", new Record()},
                 { "0", new Record()},
+                { "1", new Record()},
+                { "2", new Record()},
+                { "3", new Record()},
+                { "4", new Record()},
+                { "5", new Record()},
+                { "6", new Record()},
+                { "7", new Record()},
+                { "8", new Record()},
+                { "9", new Record()},
             };
 
             tree.AddMultiple(searchKeys);
