@@ -1,5 +1,7 @@
-﻿using System;
+﻿using ControlTreeView;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,6 +26,12 @@ namespace DataHandlingBPlusTrees
         {
             InitializeComponent();
 
+
+            string path = Directory.GetCurrentDirectory() + @"\test";
+            Console.WriteLine("-----------------" + path);
+            FileManager fm = new FileManager(path);
+            fm.Write("1234567");
+
             int degree = 4;
             BPlusTree tree = new BPlusTree(degree);
 
@@ -44,6 +52,16 @@ namespace DataHandlingBPlusTrees
             tree.AddMultiple(searchKeys);
 
             Draw(tree.Root, Main);
+
+            //CTreeView sampleCTreeView = new CTreeView();
+            //Main.Children.Add(sampleCTreeView);
+            //sampleCTreeView.BeginUpdate();
+            //sampleCTreeView.Nodes.Add(new CTreeNode("root node", new MyControl()));
+            //for (int i = 0; i < 5; i++)
+            //{
+            //    sampleCTreeView.Nodes[0].Nodes.Add(new CTreeNode("node " + i, new MyControl()));
+            //}
+            //sampleCTreeView.EndUpdate();
         }
 
         private void Draw(Node node, StackPanel sp)
