@@ -14,39 +14,55 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using MahApps.Metro.Controls;
 
 namespace DataHandlingBPlusTrees
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
+        public string Path { get; set; } = Directory.GetCurrentDirectory() + @"\test";
+        public int Block { get; set; } = 4096;
+        RelationFile fm { get; set; }
+
+        private void Setup()
+        {
+            if (File.Exists(this.Path))
+            {
+                File.Delete(this.Path);
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
+            this.Setup();
 
-
-            string path = Directory.GetCurrentDirectory() + @"\test";
-            Console.WriteLine("-----------------" + path);
-            FileManager fm = new FileManager(path);
-            fm.Write("1234567");
+            fm = new RelationFile(this.Path);
+            Record r = new Record(new List<string> {
+                "1",
+                "Barburescu",
+                "Calin"
+            });
+            fm.Write(r.ToString());
 
             int degree = 4;
             BPlusTree tree = new BPlusTree(degree);
 
-            Dictionary<string, Record> searchKeys = new Dictionary<string, Record>
+            Dictionary<string, Pointer> searchKeys = new Dictionary<string, Pointer>
             {
-                { "0", new Record()},
-                { "1", new Record()},
-                { "2", new Record()},
-                { "3", new Record()},
-                { "4", new Record()},
-                { "5", new Record()},
-                { "6", new Record()},
-                { "7", new Record()},
-                { "8", new Record()},
-                { "9", new Record()},
+                { "0", new Pointer()},
+                { "1", new Pointer()},
+                { "2", new Pointer()},
+                { "3", new Pointer()},
+                { "4", new Pointer()},
+                { "5", new Pointer()},
+                { "6", new Pointer()},
+                { "7", new Pointer()},
+                { "8", new Pointer()},
+                { "9", new Pointer()},
             };
 
             tree.AddMultiple(searchKeys);
@@ -112,6 +128,17 @@ namespace DataHandlingBPlusTrees
                     Draw(node.Children[i], sp);
                 }
             }
+        }
+
+        private void RecordToDb_Click(object sender, RoutedEventArgs e)
+        {
+            Record rec = new Record(new List<string> {
+                Id.Text,
+                Name.Text,
+                FirstName.Text
+            });
+
+            fm.Write(rec.ToString());
         }
     }
 }

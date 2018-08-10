@@ -8,13 +8,19 @@ namespace DataHandlingBPlusTrees
 {
     class Record
     {
-        public Dictionary<string, string> Data;
+        private List<string> Attributes { get; set; }
+        private string Separator { get; set; } = ",";
+        private string Terminator { get; set; } = ";";
 
-        public Record() { }
 
-        public Record(Dictionary<string, string> data)
+        public Record(List<string> attributes)
         {
-            this.Data = new Dictionary<string, string>(data);
+            this.Attributes = new List<string>(attributes);
+        }
+
+        public override string ToString()
+        {
+            return string.Join(this.Separator, this.Attributes) + this.Terminator;
         }
     }
 }

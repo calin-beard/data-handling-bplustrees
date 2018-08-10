@@ -14,14 +14,14 @@ namespace DataHandlingBPlusTrees
         public int MinKeys { get; private set; }
         public int MaxKeys { get; private set; }
         private int minChildren;
-        private int minRecords;
+        private int minPointers;
         public int MinPointers
         {
             get
             {
                 if (this.isLeaf())
                 {
-                    return this.minRecords;
+                    return this.minPointers;
                 }
                 else
                 {
@@ -32,7 +32,7 @@ namespace DataHandlingBPlusTrees
             {
                 if (this.isLeaf())
                 {
-                    this.minRecords = value;
+                    this.minPointers = value;
                 }
                 else
                 {
@@ -41,14 +41,14 @@ namespace DataHandlingBPlusTrees
             }
         }
         private int maxChildren;
-        private int maxRecords;
+        private int maxPointers;
         public int MaxPointers
         {
             get
             {
                 if (this.isLeaf())
                 {
-                    return this.maxRecords;
+                    return this.maxPointers;
                 }
                 else
                 {
@@ -59,7 +59,7 @@ namespace DataHandlingBPlusTrees
             {
                 if (this.isLeaf())
                 {
-                    this.maxRecords = value;
+                    this.maxPointers = value;
                 }
                 else
                 {
@@ -77,7 +77,7 @@ namespace DataHandlingBPlusTrees
         public List<Node> Children { get; set; }
 
         //Leaf- specific props
-        public List<Record> Records { get; }
+        public List<Pointer> Pointers { get; }
         public Node NextNode { get; set; }
 
         public Node()
@@ -94,7 +94,7 @@ namespace DataHandlingBPlusTrees
             this.Parent = n.Parent;
             this.Keys = new List<string>(n.Keys);
             this.Children = new List<Node>(n.Children);
-            this.Records = new List<Record>(n.Records);
+            this.Pointers = new List<Pointer>(n.Pointers);
             this.NextNode = n.NextNode;
         }
 
@@ -104,16 +104,16 @@ namespace DataHandlingBPlusTrees
             this.Keys = new List<string>();
             if (isLeaf)
             {
-                this.Records = new List<Record>();
+                this.Pointers = new List<Pointer>();
             }
         }
 
-        public Node(string k, Record r) : this()
+        public Node(string k, Pointer r) : this()
         {
             this.Keys = new List<string>();
             this.Keys.Add(k);
-            this.Records = new List<Record>();
-            this.Records.Add(r);
+            this.Pointers = new List<Pointer>();
+            this.Pointers.Add(r);
         }
 
         public Node(Node parent, string k, Node child1, Node child2) : this()
@@ -139,7 +139,7 @@ namespace DataHandlingBPlusTrees
 
         public bool isLeaf()
         {
-            return this.Records != null ? true : false;
+            return this.Pointers != null ? true : false;
         }
 
         public override string ToString()

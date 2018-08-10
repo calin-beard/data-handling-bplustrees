@@ -73,7 +73,7 @@ namespace DataHandlingBPlusTrees
         private Node SplitNode(Node target)
         {
             Node brother = new Node(target.Parent, target.isLeaf());
-            //add keys and records to newTarget, starting with the key Ceiling(degree/2)
+            //add keys and Pointers to newTarget, starting with the key Ceiling(degree/2)
             //the pointers and keys in the documentation start at 1
             //here, 0 based list index is used
             for (int i = target.SecondHalfFirstIndex; i < target.Keys.Count; i++)
@@ -83,10 +83,10 @@ namespace DataHandlingBPlusTrees
                 //remove key from target
                 target.Keys.RemoveAt(i);
 
-                //add record to brother
-                brother.Records.Add(target.Records[i]);
-                //remove record from target
-                target.Records.RemoveAt(i);
+                //add Pointer to brother
+                brother.Pointers.Add(target.Pointers[i]);
+                //remove Pointer from target
+                target.Pointers.RemoveAt(i);
             }
             //if the target is a leaf
             //it is needed to set the correct linked-list links
@@ -107,15 +107,15 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        public void AddMultiple(Dictionary<string, Record> searchKeys)
+        public void AddMultiple(Dictionary<string, Pointer> searchKeys)
         {
-            foreach (KeyValuePair<string, Record> searchKey in searchKeys)
+            foreach (KeyValuePair<string, Pointer> searchKey in searchKeys)
             {
                 this.Add(searchKey.Key, searchKey.Value);
             }
         }
 
-        public void Add(string value, Record pointer)
+        public void Add(string value, Pointer pointer)
         {
             if (this.Root == null)
             {
@@ -140,10 +140,10 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        private void AddToLeaf(Node target, int index, string value, Record pointer)
+        private void AddToLeaf(Node target, int index, string value, Pointer pointer)
         {
             target.Keys.Insert(index, value);
-            target.Records.Insert(index, pointer);
+            target.Pointers.Insert(index, pointer);
         }
 
         private void AddToParent(Node which, string value, Node brother)
@@ -183,15 +183,15 @@ namespace DataHandlingBPlusTrees
             Tuple<Node, int> searchResult = Search(value);
             Node target = searchResult.Item1;
             int index = searchResult.Item2;
-            Record targetRecord = target.Records[index];
-            RemoveEntry(target, value, targetRecord);
+            Pointer targetPointer = target.Pointers[index];
+            RemoveEntry(target, value, targetPointer);
         }
 
         //needs to be recursive and also take a Node as the 3rd argument
-        private void RemoveEntry(Node target, string value, Record targetRecord)
+        private void RemoveEntry(Node target, string value, Pointer targetPointer)
         {
             target.Keys.Remove(value);
-            target.Records.Remove(targetRecord);
+            target.Pointers.Remove(targetPointer);
             if (target.isRoot() && target.Children.Count == 1)
             {
                 this.Root = target.Children[0];
@@ -232,7 +232,7 @@ namespace DataHandlingBPlusTrees
                         else
                         {
                             brother.Keys.AddRange(target.Keys);
-                            brother.Records.AddRange(target.Records);
+                            brother.Pointers.AddRange(target.Pointers);
                             brother.NextNode = target.NextNode;
                             //TO ADD after updating the function arguments
                             //RemoveEntry(target.Parent, valueBetween, target);
@@ -254,12 +254,12 @@ namespace DataHandlingBPlusTrees
                         }
                         else
                         {
-                            Record lastRecordOfBrother = brother.Records.Last();
+                            Pointer lastPointerOfBrother = brother.Pointers.Last();
                             target.Keys.Insert(0, valueBetween);
-                            target.Records.Insert(0, lastRecordOfBrother);
+                            target.Pointers.Insert(0, lastPointerOfBrother);
                             target.Parent.Keys[target.Parent.Keys.IndexOf(valueBetween)] = brother.Keys.Last();
                             brother.Keys.RemoveAt(brother.Keys.Count - 1);
-                            brother.Records.RemoveAt(brother.Records.Count - 1);
+                            brother.Pointers.RemoveAt(brother.Pointers.Count - 1);
                         }
                     }
                     else
@@ -275,9 +275,9 @@ namespace DataHandlingBPlusTrees
                         }
                         else
                         {
-                            Record firstRecordOfBrother = brother.Records.First();
+                            Pointer firstPointerOfBrother = brother.Pointers.First();
                             target.Keys.Add(valueBetween);
-                            target.Records.Add(firstRecordOfBrother);
+                            target.Pointers.Add(firstPointerOfBrother);
                             target.Parent.Keys[target.Parent.Keys.IndexOf(valueBetween)] = brother.Keys.First();
                             brother.Keys.RemoveAt(0);
                             brother.Keys.RemoveAt(0);

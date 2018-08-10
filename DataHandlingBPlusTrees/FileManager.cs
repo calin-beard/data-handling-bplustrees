@@ -7,50 +7,55 @@ using System.Threading.Tasks;
 
 namespace DataHandlingBPlusTrees
 {
-    class FileManager
+    class RelationFile
     {
         public string Path { get; set; }
         private int Block { get; set; } = 4096;
-        //public string 
 
-        public FileManager(string path)
+        public RelationFile(string path)
         {
             this.Path = path;
+            this.Create(64);
         }
 
         /// <summary>
         /// Creates file that stores a relation
         /// </summary>
-        /// <param name="recordLength">The fixed length of the record stored within the file</param>
-        public void CreateRelation(int recordLength)
+        /// <param name="PointerLength">The fixed length of the Pointer stored within the file</param>
+        public void Create(int PointerLength)
         {
-            if (this.Block % recordLength != 0)
+            if (this.Block % PointerLength != 0)
             {
-                throw new Exception("The record lenght must be a divisor of the block size: " + this.Block);
+                throw new Exception("The Pointer lenght must be a divisor of the block size: " + this.Block);
             }
 
-
+            this.Write("H,5006");
         }
 
+        /// <summary>
+        /// Write an Pointer to the file created by this class
+        /// </summary>
+        /// <param name="Pointer">The information to be written</param>
         public void Write(string record)
         {
-            //string path = Directory.GetCurrentDirectory() + @"\test";
-            //Console.WriteLine("------------" + path);
             using (FileStream fs = new FileStream(this.Path, FileMode.OpenOrCreate))
             {
-                Byte[] info = new UTF8Encoding(true).GetBytes(record);
-                for (int i = info.Length; i < this.Block; i++)
+                fs.Seek(0, SeekOrigin.End);
+                Byte[] buffer = new Byte[4096];
+                Byte[] info = new UTF8Encoding(true).GetBytes(record.ToString());
+                Array.Copy(info, buffer, info.Length);
+                for (int i = buffer.Length; i < this.Block; i++)
                 {
-                    info[i] = new UTF8Encoding(true).GetBytes('\0');
+                    buffer[i] = new UTF8Encoding(true).GetBytes("\0")[0];
                 }
-                Console.WriteLine("-------------" + info.Length);
-                if (info.Length <= this.Block)
+                Console.WriteLine("-------------" + buffer.Length);
+                if (buffer.Length <= this.Block)
                 {
-                    fs.Write(info, 0, info.Length);
+                    fs.Write(buffer, 0, buffer.Length);
                 }
                 else
                 {
-                    throw new Exception("Record too large. Should be max " + this.Block + " bytes (chars)");
+                    throw new Exception("Pointer too large. Should be max " + this.Block + " bytes (chars)");
                 }
             }
         }
