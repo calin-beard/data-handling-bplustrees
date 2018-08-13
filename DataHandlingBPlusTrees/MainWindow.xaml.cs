@@ -23,16 +23,23 @@ namespace DataHandlingBPlusTrees
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        public string Path { get; set; } = Directory.GetCurrentDirectory() + @"\test";
+        public string TestRelationName { get; set; } = "Students";
         public int Block { get; set; } = 4096;
-        RelationFile fm { get; set; }
+        Relation rel { get; set; }
 
         private void Setup()
         {
-            if (File.Exists(this.Path))
+            if (File.Exists(this.TestRelationName))
             {
-                File.Delete(this.Path);
+                File.Delete(this.TestRelationName);
             }
+        }
+
+        private void DisplayRelation()
+        {
+            List<Record> records = rel.File.Read();
+            Students.ItemsSource = null;
+            Students.ItemsSource = records;
         }
 
         public MainWindow()
@@ -40,13 +47,14 @@ namespace DataHandlingBPlusTrees
             InitializeComponent();
             this.Setup();
 
-            fm = new RelationFile(this.Path);
-            Record r = new Record(new List<string> {
-                "1",
-                "Barburescu",
-                "Calin"
+            rel = new Relation(this.TestRelationName, new List<Attributte> {
+                new Attributte("Id", true, true, true),
+                new Attributte("Name", false, true, false),
+                new Attributte("FirstName", false, true, false)
             });
-            fm.Write(r.ToString());
+            Record r = new Record(rel.AttributeNames, "1,Barburescu,Calin;");
+            rel.File.WriteRecord(r.ToString());
+            DisplayRelation();
 
             int degree = 4;
             BPlusTree tree = new BPlusTree(degree);
@@ -132,13 +140,13 @@ namespace DataHandlingBPlusTrees
 
         private void RecordToDb_Click(object sender, RoutedEventArgs e)
         {
-            Record rec = new Record(new List<string> {
+            Record rec = new Record(rel.AttributeNames, new List<string> {
                 Id.Text,
                 Name.Text,
                 FirstName.Text
             });
-
-            fm.Write(rec.ToString());
+            rel.File.WriteRecord(rec.ToString());
+            DisplayRelation();
         }
     }
 }

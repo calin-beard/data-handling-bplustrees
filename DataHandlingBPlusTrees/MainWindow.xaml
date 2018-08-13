@@ -5,9 +5,9 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ControlTreeView"
         mc:Ignorable="d"
         Title="Database Manager" Height="500" Width="800"
+        ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen">
     <Controls:MetroWindow.Resources>
         <ResourceDictionary>
@@ -33,7 +33,14 @@
             <TextBox Name="FirstName" Width="70" Margin="10, 0"/>
             <Button Name="RecordToDb" Content="Insert in DB" Width="Auto" Margin="10, 0" Click="RecordToDb_Click"/>
         </StackPanel>
-        <StackPanel Name="Main" Grid.Row="1" Height="194" HorizontalAlignment="Center" VerticalAlignment="Center" Width="471"/>
+        <DataGrid Name="Students" AutoGenerateColumns="False" GridLinesVisibility="All" IsReadOnly="True" Grid.Row="1" HorizontalAlignment="Left" VerticalAlignment="Center" Width="Auto" Height="Auto">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Binding="{Binding Attributes[Id]}"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding Attributes[Name]}"/>
+                <DataGridTextColumn Header="First Name" Binding="{Binding Attributes[FirstName]}"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <StackPanel Name="Main" Grid.Row="1" Height="194" HorizontalAlignment="Right" VerticalAlignment="Center" Width="400" Margin="20"/>
         <ListView HorizontalAlignment="Left" Height="100" Margin="913,275,-221,0" VerticalAlignment="Top" Width="100">
             <ListView.View>
                 <GridView>

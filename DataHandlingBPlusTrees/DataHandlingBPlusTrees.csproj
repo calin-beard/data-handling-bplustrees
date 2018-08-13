@@ -67,7 +67,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="FileManager.cs" />
+    <Compile Include="Attributte.cs" />
+    <Compile Include="Relation.cs" />
+    <Compile Include="RelationFile.cs" />
     <Compile Include="Pointer.cs" />
     <Compile Include="Record.cs" />
     <Page Include="MainWindow.xaml">
