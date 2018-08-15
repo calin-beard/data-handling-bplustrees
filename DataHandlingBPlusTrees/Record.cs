@@ -7,12 +7,20 @@ using System.Threading.Tasks;
 namespace DataHandlingBPlusTrees
 {
     class Record
+
     {
         //public List<string> Attributes { get; set; }
         public Dictionary<string, string> Attributes { get; set; }
         private string Separator { get; set; } = ",";
         private string Terminator { get; set; } = ";";
+        private int ExpectedAttributeCount { get; set; }
+
         public Record() { }
+
+        public Record(int expectedattributecount)
+        {
+            this.ExpectedAttributeCount = expectedattributecount;
+        }
 
         public Record(Dictionary<string, string> attributes)
         {
@@ -55,6 +63,10 @@ namespace DataHandlingBPlusTrees
                 this.Attributes.Add(attribute, "");
             }
             attributeNames = new List<string>(this.Attributes.Keys);
+            if (temp.Length != attributeNames.Count)
+            {
+                throw new Exception("--- The number of record attributes has to match the number of columns in the relation");
+            }
             int i = 0;
             foreach (string attribute in attributeNames)
             {

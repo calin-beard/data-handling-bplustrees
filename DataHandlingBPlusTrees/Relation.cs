@@ -8,7 +8,7 @@ namespace DataHandlingBPlusTrees
 {
     class Relation
     {
-        private List<Attributte> Attributes { get; set; }
+        public List<Attributte> Attributes { get; set; }
         public List<string> AttributeNames { get; set; }
         private string Name { get; set; }
         public RelationFile File { get; set; }
