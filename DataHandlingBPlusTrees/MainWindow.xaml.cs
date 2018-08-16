@@ -1,6 +1,7 @@
-﻿using ControlTreeView;
+﻿
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -35,11 +36,24 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        private void DisplayRelation()
+        private void DisplayRelation(string[] columns = null)
         {
             List<Record> records = rel.File.Read();
-            Students.ItemsSource = null;
-            Students.ItemsSource = records;
+            StudentsTable.ItemsSource = null;
+            StudentsTable.Columns.Clear();
+            StudentsTable.ItemsSource = records;
+            if (columns == null)
+            {
+                columns = rel.AttributeNames.ToArray();
+            }
+            foreach (string column in columns)
+            {
+                StudentsTable.Columns.Add(new DataGridTextColumn
+                {
+                    Binding = new Binding($"Attributes[{column}]"),
+                    Header = column
+                });
+            }
         }
 
         public MainWindow()
@@ -48,9 +62,9 @@ namespace DataHandlingBPlusTrees
             this.Setup();
 
             rel = new Relation(this.TestRelationName, new List<Attributte> {
-                new Attributte("Id", true, true, true),
-                new Attributte("Name", false, true, false),
-                new Attributte("FirstName", false, true, false)
+                new Attributte("id", true, true, true),
+                new Attributte("name", false, true, false),
+                new Attributte("firstname", false, true, false)
             });
             Record r = new Record(rel.AttributeNames, "1,Barburescu,Calin;");
             rel.File.WriteRecord(r.ToString());
@@ -138,7 +152,7 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        private void RecordToDb_Click(object sender, RoutedEventArgs e)
+        private void InsertIntoStudents_Click(object sender, RoutedEventArgs e)
         {
             Record rec = new Record(rel.AttributeNames, new List<string> {
                 Id.Text,
@@ -147,6 +161,24 @@ namespace DataHandlingBPlusTrees
             });
             rel.File.WriteRecord(rec.ToString());
             DisplayRelation();
+        }
+
+        private void SelectFromStudents_Click(object sender, RoutedEventArgs e)
+        {
+            if (ColumnSelector.Text == "*")
+            {
+                DisplayRelation();
+            }
+            else
+            {
+                string[] columns = ColumnSelector.Text.Split(',');
+                for (int i = 0; i < columns.Length; i++)
+                {
+                    columns[i] = columns[i].Trim();
+                    columns[i] = columns[i].ToLower();
+                }
+                DisplayRelation(columns);
+            }
         }
     }
 }
