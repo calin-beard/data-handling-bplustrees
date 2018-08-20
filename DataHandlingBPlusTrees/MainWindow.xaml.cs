@@ -75,7 +75,6 @@ namespace DataHandlingBPlusTrees
 
             Dictionary<string, Pointer> searchKeys = new Dictionary<string, Pointer>
             {
-                { "0", new Pointer()},
                 { "1", new Pointer()},
                 { "2", new Pointer()},
                 { "3", new Pointer()},
@@ -92,7 +91,7 @@ namespace DataHandlingBPlusTrees
             Draw(tree.Root, Main);
 
             //CTreeView sampleCTreeView = new CTreeView();
-            //Main.Children.Add(sampleCTreeView);
+            //Main.Pointers.Add(sampleCTreeView);
             //sampleCTreeView.BeginUpdate();
             //sampleCTreeView.Nodes.Add(new CTreeNode("root node", new MyControl()));
             //for (int i = 0; i < 5; i++)
@@ -105,7 +104,7 @@ namespace DataHandlingBPlusTrees
         private void Draw(Node node, StackPanel sp)
         {
             //add new line (stack panel) to the parent stack panel
-            if (node.IsRoot() || Array.IndexOf(node.Parent.Children, node) == 0)
+            if (node.IsRoot() || Array.IndexOf(node.Parent.Pointers, node) == 0)
             {
                 StackPanel childPanel = new StackPanel
                 {
@@ -145,9 +144,9 @@ namespace DataHandlingBPlusTrees
 
             if (!node.IsLeaf())
             {
-                for (int i = 0; i < node.Children.Length; i++)
+                for (int i = 0; i < node.Pointers.Length; i++)
                 {
-                    Draw(node.Children[i], sp);
+                    Draw(node.Pointers[i], sp);
                 }
             }
         }

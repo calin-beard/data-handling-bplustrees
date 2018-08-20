@@ -15,63 +15,15 @@ namespace DataHandlingBPlusTrees
         public int MinKeys { get; private set; }
         public int MaxKeys { get; private set; }
 
-        // Minimum children/pointers
-        private int minChildren;
-        private int minPointers;
-        public int MinPointers
-        {
-            get
-            {
-                if (this.IsLeaf())
-                {
-                    return this.minPointers;
-                }
-                else
-                {
-                    return this.minChildren;
-                }
-            }
-            private set
-            {
-                if (this.IsLeaf())
-                {
-                    this.minPointers = value;
-                }
-                else
-                {
-                    this.minChildren = value;
-                }
-            }
-        }
+        /// <summary>
+        /// Minimum number of pointers a node can carry
+        /// </summary>
+        public int MinPointers { get; set; }
 
-        // Maximum children/pointers
-        private int maxChildren;
-        private int maxPointers;
-        public int MaxPointers
-        {
-            get
-            {
-                if (this.IsLeaf())
-                {
-                    return this.maxPointers;
-                }
-                else
-                {
-                    return this.maxChildren;
-                }
-            }
-            set
-            {
-                if (this.IsLeaf())
-                {
-                    this.maxPointers = value;
-                }
-                else
-                {
-                    this.maxChildren = value;
-                }
-            }
-        }
+        /// <summary>
+        /// Maximum number of pointers a node can carry
+        /// </summary>
+        public int MaxPointers { get; set; }
 
         // Index from which the keys are moved when splitting a node
         public int SecondHalfFirstIndex { get; } = (int)Math.Floor((double)Node.Degree / 2);
@@ -84,10 +36,10 @@ namespace DataHandlingBPlusTrees
         public string[] Keys { get; set; }
 
         //Internal node-specific props
-        public Node[] Children { get; set; }
+        public Node[] Pointers { get; set; }
 
         //Leaf-specific props
-        public Pointer[] Pointers { get; set; }
+        public Pointer[] RecordPointers { get; set; }
         public Node NextNode { get; set; }
 
         // Basic constructor
@@ -107,13 +59,13 @@ namespace DataHandlingBPlusTrees
             Array.Copy(n.Keys, this.Keys, n.Keys.Length);
             if (n.IsLeaf())
             {
-                this.Pointers = new Pointer[this.MaxPointers];
-                Array.Copy(n.Pointers, this.Pointers, n.Pointers.Length);
+                this.RecordPointers = new Pointer[this.MaxPointers];
+                Array.Copy(n.RecordPointers, this.RecordPointers, n.RecordPointers.Length);
             }
             else
             {
-                this.Children = new Node[this.MaxPointers];
-                Array.Copy(n.Children, this.Children, n.Children.Length);
+                this.Pointers = new Node[this.MaxPointers];
+                Array.Copy(n.Pointers, this.Pointers, n.Pointers.Length);
             }
             this.NextNode = n.NextNode;
         }
@@ -125,11 +77,11 @@ namespace DataHandlingBPlusTrees
             this.Keys = new string[this.MaxKeys];
             if (isLeaf)
             {
-                this.Pointers = new Pointer[this.MaxPointers];
+                this.RecordPointers = new Pointer[this.MaxPointers];
             }
             else
             {
-                this.Children = new Node[this.MaxPointers];
+                this.Pointers = new Node[this.MaxPointers];
             }
         }
 
@@ -138,8 +90,8 @@ namespace DataHandlingBPlusTrees
         {
             this.Keys = new string[this.MaxKeys];
             this.Keys[0] = k;
-            this.Pointers = new Pointer[this.MaxPointers];
-            this.Pointers[0] = r;
+            this.RecordPointers = new Pointer[this.MaxPointers];
+            this.RecordPointers[0] = r;
         }
 
         // Constructor called by BPlusTree.InsertInParent(...) when creating new root
@@ -150,9 +102,9 @@ namespace DataHandlingBPlusTrees
             child2.Parent = this;
             this.Keys = new string[this.MaxKeys];
             this.Keys[0] = k;
-            this.Children = new Node[this.MaxPointers];
-            this.Children[0] = child1;
-            this.Children[0] = child2;
+            this.Pointers = new Node[this.MaxPointers];
+            this.Pointers[0] = child1;
+            this.Pointers[0] = child2;
         }
 
         // Destructor
@@ -169,10 +121,10 @@ namespace DataHandlingBPlusTrees
         }
 
         // Method that tests if the node is a leaf node
-        // true if it does not have children
+        // true if it does not have Pointers
         public bool IsLeaf()
         {
-            return this.Children == null ? true : false;
+            return this.Pointers == null ? true : false;
         }
 
         // ToString override for debugging
