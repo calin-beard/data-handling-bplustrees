@@ -87,7 +87,7 @@ namespace DataHandlingBPlusTrees
                 { "9", new Pointer()},
             };
 
-            tree.AddMultiple(searchKeys);
+            tree.InsertMultiple(searchKeys);
 
             Draw(tree.Root, Main);
 
@@ -105,7 +105,7 @@ namespace DataHandlingBPlusTrees
         private void Draw(Node node, StackPanel sp)
         {
             //add new line (stack panel) to the parent stack panel
-            if (node.isRoot() || node.Parent.Children.IndexOf(node) == 0)
+            if (node.IsRoot() || Array.IndexOf(node.Parent.Children, node) == 0)
             {
                 StackPanel childPanel = new StackPanel
                 {
@@ -125,14 +125,14 @@ namespace DataHandlingBPlusTrees
             };
             lastChildPanel.Children.Add(grandchild);
 
-            for (int i = 0; i < node.Keys.Count; i++)
+            for (int i = 0; i < node.Keys.Length; i++)
             {
                 Label n = new Label
                 {
                     Content = node.Keys[i]
                 };
                 grandchild.Children.Add(n);
-                if (i == node.Keys.Count - 1)
+                if (i == node.Keys.Length - 1)
                 {
                     break;
                 }
@@ -143,9 +143,9 @@ namespace DataHandlingBPlusTrees
                 grandchild.Children.Add(s);
             }
 
-            if (!node.isLeaf())
+            if (!node.IsLeaf())
             {
-                for (int i = 0; i < node.Children.Count; i++)
+                for (int i = 0; i < node.Children.Length; i++)
                 {
                     Draw(node.Children[i], sp);
                 }
