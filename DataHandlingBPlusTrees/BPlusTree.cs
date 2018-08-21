@@ -86,11 +86,12 @@ namespace DataHandlingBPlusTrees
             return results;
         }
 
+        // not used anymore. will delete
         /// <summary>
         /// Splits the target node and returns its new brother
         /// </summary>
         /// <param name="target">Node to split</param>
-        /// <returns>The new node that was created (brother of the target)</returns>
+        /// <returns>The new node that was `reated (brother of the target)</returns>
         private Node SplitNode(Node target)
         {
             Node brother = new Node(target.Parent, target.IsLeaf());
@@ -303,7 +304,7 @@ namespace DataHandlingBPlusTrees
         /// <param name="target">Node where the value will be removed from</param>
         /// <param name="value">Value to remove</param>
         /// <param name="targetRecordPointer">Recordpointer to remove along with the value</param>
-        // needs to be recursive and also take a Node as the 3rd argument
+        // need to implement recursive bottom up deletion
         private void DeleteEntry(Node target, string value, Node targetPointer = null , RecordPointer targetRecordPointer = null)
         {
             ArrayHandler.RemoveAt(Array.IndexOf(target.Keys, value), target.Keys);
