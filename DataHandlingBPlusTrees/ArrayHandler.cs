@@ -81,5 +81,23 @@ namespace DataHandlingBPlusTrees
             }
             array[lastIndex] = default(T);
         }
+
+        /// <summary>
+        /// Removes the elements starting at the specified index
+        /// </summary>
+        /// <typeparam name="T">type of the array</typeparam>
+        /// <param name="index">index to start removing from</param>
+        /// <param name="array">array to process</param>
+        public static void RemoveFrom<T>(int index, T[] array)
+        {
+            if (index >= array.Length || index < 0)
+            {
+                throw new IndexOutOfRangeException();
+            }
+            while (array[index] != null)
+            {
+                ArrayHandler.RemoveAt(index, array);
+            }
+        }
     }
 }

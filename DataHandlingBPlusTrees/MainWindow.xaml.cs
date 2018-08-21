@@ -27,6 +27,7 @@ namespace DataHandlingBPlusTrees
         public string TestRelationName { get; set; } = "Students";
         public int Block { get; set; } = 4096;
         Relation rel { get; set; }
+        private List<Tuple<Point, Point>> LinkedListArrowCoords { get; set; } = new List<Tuple<Point, Point>>();
 
         private void Setup()
         {
@@ -70,23 +71,43 @@ namespace DataHandlingBPlusTrees
             rel.File.WriteRecord(r.ToString());
             DisplayRelation();
 
-            int degree = 4;
+            int degree = 6;
             BPlusTree tree = new BPlusTree(degree);
 
-            Dictionary<string, Pointer> searchKeys = new Dictionary<string, Pointer>
+            Dictionary<string, RecordPointer> searchKeys = new Dictionary<string, RecordPointer>
             {
-                { "1", new Pointer()},
-                { "2", new Pointer()},
-                { "3", new Pointer()},
-                { "4", new Pointer()},
-                { "5", new Pointer()},
-                { "6", new Pointer()},
-                { "7", new Pointer()},
-                { "8", new Pointer()},
-                { "9", new Pointer()},
+                { "d", new RecordPointer()},
+                { "s", new RecordPointer()},
+                { "g", new RecordPointer()},
+                { "a", new RecordPointer()},
+                { "w", new RecordPointer()},
+                { "o", new RecordPointer()},
+                { "v", new RecordPointer()},
+                { "h", new RecordPointer()},
+                { "q", new RecordPointer()},
+                { "z", new RecordPointer()},
+                { "y", new RecordPointer()},
+                { "p", new RecordPointer()},
+                { "j", new RecordPointer()},
+                { "b", new RecordPointer()},
+                { "k", new RecordPointer()},
+                { "l", new RecordPointer()},
+                { "i", new RecordPointer()},
+                { "m", new RecordPointer()},
+                { "n", new RecordPointer()},
+                { "t", new RecordPointer()},
+                { "c", new RecordPointer()},
+                //{ "e", new RecordPointer()},
+                //{ "r", new RecordPointer()},
+                //{ "u", new RecordPointer()},
+                //{ "x", new RecordPointer()},
+                //{ "f", new RecordPointer()},
             };
 
             tree.InsertMultiple(searchKeys);
+
+            tree.Delete("d");
+            tree.Delete("g");
 
             Draw(tree.Root, Main);
 
@@ -115,40 +136,133 @@ namespace DataHandlingBPlusTrees
                 sp.Children.Add(childPanel);
             }
 
+            // adds new node at the end of the row
             StackPanel lastChildPanel = sp.Children[sp.Children.Count - 1] as StackPanel;
             StackPanel grandchild = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Center,
+                //Width = 10,
                 Margin = new Thickness(5)
             };
             lastChildPanel.Children.Add(grandchild);
 
+            // adds keys to the node as labels
             for (int i = 0; i < node.Keys.Length; i++)
             {
                 Label n = new Label
                 {
-                    Content = node.Keys[i]
+                    Content = node.Keys[i],
+                    Foreground = Brushes.White,
+                    HorizontalContentAlignment = HorizontalAlignment.Center
                 };
-                grandchild.Children.Add(n);
+                Border b = new Border
+                {
+                    BorderBrush = Brushes.DarkGreen,
+                    BorderThickness = new Thickness(1),
+                    Background = Brushes.ForestGreen,
+                    MinWidth = 22,
+                    Child = n,
+                };
+                //b.MouseEnter += new MouseEventHandler(HoverOverKey);
+                //b.MouseLeave += new MouseEventHandler(HoverOverKey);
+                grandchild.Children.Add(b);
+                if (i == 0)
+                {
+                    b.Loaded += new RoutedEventHandler(FirstKeyLoaded);
+                }
                 if (i == node.Keys.Length - 1)
                 {
+                    grandchild.SizeChanged += new SizeChangedEventHandler(StackPanelSizeChanged);
+                    grandchild.Loaded += new RoutedEventHandler(NodeFinishedLoading);
                     break;
                 }
-                Rectangle s = new Rectangle();
-                s.Width = 2;
-                s.Margin = new Thickness(2);
-                s.Stroke = new SolidColorBrush(Colors.Black);
-                grandchild.Children.Add(s);
             }
 
-            if (!node.IsLeaf())
+            // draw the arrows for the linked list
+            if (node.IsLeaf())
             {
+                grandchild.Loaded += new RoutedEventHandler(LeafFinishedLoading);
+                //if (Array.IndexOf(node.Parent.Pointers, node) == ArrayHandler.GetIndexOfLastElement(node.Parent.Pointers))
+                //{
+                //    Main.Loaded += new RoutedEventHandler(TreeLoaded);
+                //}
+            }
+            else
+            {
+                // call the draw method recursively in order to draw the child nodes
                 for (int i = 0; i < node.Pointers.Length; i++)
                 {
+                    if (node.Pointers[i] == null)
+                    {
+                        break;
+                    }
                     Draw(node.Pointers[i], sp);
                 }
             }
+
+            if (node.IsRoot())
+            {
+                Main.Loaded += new RoutedEventHandler(TreeLoaded);
+            }
+        }
+
+        private void DrawLinkedList()
+        {
+            List<Tuple<Point, Point>> c = LinkedListArrowCoords;
+            if (!LinkedListArrowCoords.Any())
+            {
+                Console.WriteLine("-------------List is empty");
+            }
+            foreach (Tuple<Point, Point> el in c)
+            {
+                Console.WriteLine("------- Points are" + el.Item1.ToString() + " ; " + el.Item2.ToString());
+            }
+            for (int i = 0; i < LinkedListArrowCoords.Count; i++)
+            {
+                if (i == LinkedListArrowCoords.Count - 1)
+                {
+                    break;
+                }
+                this.AddChild(new Line { Stroke = Brushes.PowderBlue, StrokeThickness = 2, X1 = c[i].Item1.X, Y1 = c[i].Item1.Y, X2 = c[i+1].Item2.X, Y2 = c[i+1].Item2.Y });
+            }
+        }
+
+        //public void HoverOverKey(object sender, MouseEventArgs e)
+        //{
+        //    Console.WriteLine("---- The mouse is at " + e.GetPosition(this));
+        //}
+
+        public void NodeFinishedLoading(object sender, RoutedEventArgs e)
+        {
+            StackPanel s = sender as StackPanel;
+            Console.WriteLine("-----Width of " + s.ToString() + " is " + s.ActualWidth);
+            Console.WriteLine("-----Midpoint of " + s.ToString() + " is " + s.PointToScreen(new Point(s.ActualWidth/2, 0)));
+        }
+
+        public void LeafFinishedLoading(object sender, RoutedEventArgs e)
+        {
+            StackPanel s = sender as StackPanel;
+            Point start = s.PointToScreen(new Point(s.ActualWidth - 5, s.ActualHeight / 2));
+            Point end = s.PointToScreen(new Point(5, s.ActualHeight / 2));
+            LinkedListArrowCoords.Add(new Tuple<Point, Point>(start, end));
+            Console.WriteLine("-----LL arrow starting point from " + s.ToString() + " is " + start);
+            Console.WriteLine("-----LL arrow ending point from " + s.ToString() + " is " + end);
+        }
+
+        public void StackPanelSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+
+        }
+
+        public void FirstKeyLoaded(object sender, RoutedEventArgs e)
+        {
+            Console.WriteLine("----------------" + (sender as Border).PointToScreen(new Point(0, 0)));
+        }
+
+        public void TreeLoaded(object sender, RoutedEventArgs e)
+        {
+            DrawLinkedList();
         }
 
         private void InsertIntoStudents_Click(object sender, RoutedEventArgs e)
