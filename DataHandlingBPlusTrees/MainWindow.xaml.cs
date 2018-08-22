@@ -96,22 +96,27 @@ namespace DataHandlingBPlusTrees
                 { "m", new RecordPointer()},
                 { "n", new RecordPointer()},
                 { "t", new RecordPointer()},
-                //{ "c", new RecordPointer()},
-                //{ "e", new RecordPointer()},
-                //{ "r", new RecordPointer()},
-                //{ "u", new RecordPointer()},
-                //{ "x", new RecordPointer()},
-                //{ "f", new RecordPointer()},
+                { "c", new RecordPointer()},
+                { "e", new RecordPointer()},
+                { "r", new RecordPointer()},
+                { "u", new RecordPointer()},
+                { "x", new RecordPointer()},
+                { "f", new RecordPointer()},
             };
 
             tree.InsertMultiple(searchKeys);
 
-            tree.Delete("d");
-            tree.Delete("g");
-            tree.Delete("k");
-            tree.Delete("q");
-            tree.Delete("y");
-            tree.Delete("i");
+            Console.WriteLine("---- MinKeys" + tree.Root.Pointers[0].Pointers[0].MinKeys());
+            Console.WriteLine("---- MaxKeys" + tree.Root.Pointers[0].Pointers[0].MaxKeys());
+            Console.WriteLine("---- MinPointers" + tree.Root.Pointers[0].Pointers[0].MinPointers());
+            Console.WriteLine("---- MaxPointers" + tree.Root.Pointers[0].Pointers[0].MaxPointers());
+
+            //tree.Delete("d");
+            //tree.Delete("g");
+            //tree.Delete("k");
+            //tree.Delete("q");
+            //tree.Delete("y");
+            //tree.Delete("i");
 
             Draw(tree.Root, Main);
 

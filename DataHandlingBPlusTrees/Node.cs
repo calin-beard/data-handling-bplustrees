@@ -11,23 +11,23 @@ namespace DataHandlingBPlusTrees
         // Properties for "magic numbers" of the node
         public static int Degree { get; set; }
 
-        public int MinKeys { get; private set; }
-        public int MaxKeys { get; private set; }
+        //public int MinKeys { get; private set; }
+        //public int MaxKeys { get; private set; }
 
         /// <summary>
         /// Minimum number of pointers a node can carry
         /// </summary>
-        public int MinPointers { get; set; }
+        //public int MinPointers { get; set; }
 
         /// <summary>
         /// Maximum number of pointers a node can carry
         /// </summary>
-        public int MaxPointers { get; set; }
+        //public int MaxPointers { get; set; }
 
         // Index from which the keys are moved when splitting a node
-        public int SecondHalfFirstIndex { get; } = (int)Math.Ceiling((double)Node.Degree / 2);
+        //public int SecondHalfFirstIndex { get; } = (int)Math.Ceiling((double)Node.Degree / 2);
         // Index where the keys are inserted in the brother when splitting a node
-        public int FirstInsertionIndex { get; } = (int)Math.Floor((double)Node.Degree / 2) - 1;
+        //public int FirstInsertionIndex { get; } = (int)Math.Floor((double)Node.Degree / 2) - 1;
 
         // Parent and keys
         public Node Parent { get; set; }
@@ -41,35 +41,57 @@ namespace DataHandlingBPlusTrees
         public RecordPointer[] RecordPointers { get; set; }
         public Node NextNode { get; set; }
 
+        public int MinKeys()
+        {
+            return this.IsRoot() ? 1 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2) - 1);
+        }
+
+        public int MaxKeys()
+        {
+            return Node.Degree - 1;
+        }
+
+        public int MinPointers()
+        {
+            return this.IsRoot() ? 2 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2));
+        }
+
+        public int MaxPointers()
+        {
+            return this.IsLeaf() ? Node.Degree - 1 : Node.Degree;
+        }
+
+        public int SecondHalfFirstIndex()
+        {
+            return (int)Math.Ceiling((double)Node.Degree / 2);
+        }
+
         // Basic constructor
         public Node(Node parent = null)
         {
             this.Parent = parent;
-            this.MinKeys = this.IsRoot() ? 1 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2) - 1);
-            this.MaxKeys = Node.Degree - 1;
-            this.MinPointers = this.IsRoot() ? 2 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2));
-            this.MaxPointers = this.IsLeaf() ? Node.Degree - 1 : Node.Degree;
+            //this.MinKeys = this.IsRoot() ? 1 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2) - 1);
+            //this.MaxKeys = Node.Degree - 1;
+            //this.MinPointers = this.IsRoot() ? 2 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2));
+            //this.MaxPointers = this.IsLeaf() ? Node.Degree - 1 : Node.Degree;
         }
 
         // Copy constructor
         public Node(Node n, int extraroom = 0) : this(n.Parent)
         {
-            if (extraroom > 0)
-            {
-                this.MaxKeys += extraroom;
-                this.MaxPointers += extraroom;
-            }
+            var maxkeys = this.MaxKeys() + extraroom;
+            var maxpointers = this.MaxPointers() + extraroom;
             //this.Parent = n.Parent;
-            this.Keys = new string[this.MaxKeys];
+            this.Keys = new string[maxkeys];
             Array.Copy(n.Keys, this.Keys, n.Keys.Length);
             if (n.IsLeaf())
             {
-                this.RecordPointers = new RecordPointer[this.MaxPointers];
+                this.RecordPointers = new RecordPointer[maxpointers];
                 Array.Copy(n.RecordPointers, this.RecordPointers, n.RecordPointers.Length);
             }
             else
             {
-                this.Pointers = new Node[this.MaxPointers];
+                this.Pointers = new Node[maxpointers];
                 Array.Copy(n.Pointers, this.Pointers, n.Pointers.Length);
             }
             this.NextNode = n.NextNode;
@@ -79,23 +101,23 @@ namespace DataHandlingBPlusTrees
         public Node(Node parent, bool isLeaf = false) : this(parent)
         {
             //this.Parent = parent;
-            this.Keys = new string[this.MaxKeys];
+            this.Keys = new string[this.MaxKeys()];
             if (isLeaf)
             {
-                this.RecordPointers = new RecordPointer[this.MaxPointers];
+                this.RecordPointers = new RecordPointer[this.MaxPointers()];
             }
             else
             {
-                this.Pointers = new Node[this.MaxPointers];
+                this.Pointers = new Node[this.MaxPointers()];
             }
         }
 
         // Constructor that creates root node
         public Node(string k, RecordPointer r) : this()
         {
-            this.Keys = new string[this.MaxKeys];
+            this.Keys = new string[this.MaxKeys()];
             this.Keys[0] = k;
-            this.RecordPointers = new RecordPointer[this.MaxPointers];
+            this.RecordPointers = new RecordPointer[this.MaxPointers()];
             this.RecordPointers[0] = r;
         }
 
@@ -105,9 +127,9 @@ namespace DataHandlingBPlusTrees
             this.Parent = parent;
             //child1.Parent = this;
             //child2.Parent = this;
-            this.Keys = new string[this.MaxKeys];
+            this.Keys = new string[this.MaxKeys()];
             this.Keys[0] = k;
-            this.Pointers = new Node[this.MaxPointers];
+            this.Pointers = new Node[this.MaxPointers()];
             this.Pointers[0] = child1;
             this.Pointers[1] = child2;
         }
@@ -118,11 +140,11 @@ namespace DataHandlingBPlusTrees
             Console.WriteLine("The destructor for " + this + " is called");
         }
 
-        public void AdjustMinThresholds()
-        {
-            this.MinKeys = this.IsRoot() ? 1 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2) - 1);
-            this.MinPointers = this.IsRoot() ? 2 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2));
-        }
+        //public void AdjustMinThresholds()
+        //{
+        //    this.MinKeys = this.IsRoot() ? 1 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2) - 1);
+        //    this.MinPointers = this.IsRoot() ? 2 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2));
+        //}
 
         // Method that tests if the node is the root node
         // true if it has no parent

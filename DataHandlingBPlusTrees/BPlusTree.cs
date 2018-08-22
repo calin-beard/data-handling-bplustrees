@@ -93,57 +93,57 @@ namespace DataHandlingBPlusTrees
         /// </summary>
         /// <param name="target">Node to split</param>
         /// <returns>The new node that was `reated (brother of the target)</returns>
-        private Node SplitNode(Node target)
-        {
-            Node brother = new Node(target.Parent, target.IsLeaf());
-            //add keys and RecordPointers to newTarget, starting with the key Ceiling(degree/2)
-            //the RecordPointers and keys in the documentation start at 1
-            //here, 0 based array index is used
-            for (int i = target.SecondHalfFirstIndex, j = 0; i < target.Keys.Length; i++, j++)
-            {
-                //add key to brother
-                brother.Keys[j] = target.Keys[i];
+        //private Node SplitNode(Node target)
+        //{
+        //    Node brother = new Node(target.Parent, target.IsLeaf());
+        //    //add keys and RecordPointers to newTarget, starting with the key Ceiling(degree/2)
+        //    //the RecordPointers and keys in the documentation start at 1
+        //    //here, 0 based array index is used
+        //    for (int i = target.SecondHalfFirstIndex, j = 0; i < target.Keys.Length; i++, j++)
+        //    {
+        //        //add key to brother
+        //        brother.Keys[j] = target.Keys[i];
 
-                if (brother.IsLeaf())
-                {
-                    //add RecordPointer to brother
-                    brother.RecordPointers[j] = target.RecordPointers[i];
-                }
-                else
-                {
-                    //add Pointer to brother
-                    brother.Pointers[j] = target.Pointers[i+1];
-                }
-            }
+        //        if (brother.IsLeaf())
+        //        {
+        //            //add RecordPointer to brother
+        //            brother.RecordPointers[j] = target.RecordPointers[i];
+        //        }
+        //        else
+        //        {
+        //            //add Pointer to brother
+        //            brother.Pointers[j] = target.Pointers[i+1];
+        //        }
+        //    }
 
-            if (!brother.IsLeaf())
-            {
-                for (int i = 0; i <= ArrayHandler.GetIndexOfLastElement(brother.Pointers); i++)
-                {
-                    brother.Pointers[i].Parent = brother;
-                }
-            }
+        //    if (!brother.IsLeaf())
+        //    {
+        //        for (int i = 0; i <= ArrayHandler.GetIndexOfLastElement(brother.Pointers); i++)
+        //        {
+        //            brother.Pointers[i].Parent = brother;
+        //        }
+        //    }
 
-            ArrayHandler.RemoveFrom(target.SecondHalfFirstIndex, target.Keys);
-            if (brother.IsLeaf())
-            {
-                ArrayHandler.RemoveFrom(target.SecondHalfFirstIndex, target.RecordPointers);
-            }
-            else
-            {
-                ArrayHandler.RemoveFrom(target.SecondHalfFirstIndex + 1, target.Pointers);
-            }
+        //    ArrayHandler.RemoveFrom(target.SecondHalfFirstIndex, target.Keys);
+        //    if (brother.IsLeaf())
+        //    {
+        //        ArrayHandler.RemoveFrom(target.SecondHalfFirstIndex, target.RecordPointers);
+        //    }
+        //    else
+        //    {
+        //        ArrayHandler.RemoveFrom(target.SecondHalfFirstIndex + 1, target.Pointers);
+        //    }
 
-            //if the target is a leaf
-            //it is needed to set the correct linked-list links
-            if (brother.IsLeaf())
-            {
-                brother.NextNode = target.NextNode;
-                target.NextNode = brother;
-            }
+        //    //if the target is a leaf
+        //    //it is needed to set the correct linked-list links
+        //    if (brother.IsLeaf())
+        //    {
+        //        brother.NextNode = target.NextNode;
+        //        target.NextNode = brother;
+        //    }
 
-            return brother;
-        }
+        //    return brother;
+        //}
 
         /// <summary>
         /// Inserts multiple elements in the tree
@@ -174,7 +174,7 @@ namespace DataHandlingBPlusTrees
                 Node target = searchResult.Item1;
                 int index = searchResult.Item2;
 
-                if ((ArrayHandler.GetIndexOfLastElement(target.Keys) + 1) < target.MaxKeys)
+                if ((ArrayHandler.GetIndexOfLastElement(target.Keys) + 1) < target.MaxKeys())
                 {
                     InsertInLeaf(target, index, value, recordpointer);
                 }
@@ -188,12 +188,12 @@ namespace DataHandlingBPlusTrees
                     target.NextNode = brother;
                     ArrayHandler.RemoveFrom(0, target.Keys);
                     ArrayHandler.RemoveFrom(0, target.RecordPointers);
-                    for (int i = 0; i < temp.SecondHalfFirstIndex; i++)
+                    for (int i = 0; i < temp.SecondHalfFirstIndex(); i++)
                     {
                         target.Keys[i] = temp.Keys[i];
                         target.RecordPointers[i] = temp.RecordPointers[i];
                     }
-                    for (int i = 0, j = temp.SecondHalfFirstIndex; j < temp.Keys.Length; i++, j++)
+                    for (int i = 0, j = temp.SecondHalfFirstIndex(); j < temp.Keys.Length; i++, j++)
                     {
                         brother.Keys[i] = temp.Keys[j];
                         brother.RecordPointers[i] = temp.RecordPointers[j];
@@ -204,21 +204,21 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        private void AdjustMinThresholdsAllLeafs()
-        {
-            Node node = this.Root;
-            while (!node.IsLeaf())
-            {
-                node = node.Pointers[0];
-            }
+        //private void AdjustMinThresholdsAllLeafs()
+        //{
+        //    Node node = this.Root;
+        //    while (!node.IsLeaf())
+        //    {
+        //        node = node.Pointers[0];
+        //    }
 
-            while (node.NextNode != null)
-            {
-                node.AdjustMinThresholds();
-                node = node.NextNode;
-            }
-            node.AdjustMinThresholds();
-        }
+        //    while (node.NextNode != null)
+        //    {
+        //        node.AdjustMinThresholds();
+        //        node = node.NextNode;
+        //    }
+        //    node.AdjustMinThresholds();
+        //}
 
         /// <summary>
         /// Helper method for the insertion algorithm
@@ -245,16 +245,16 @@ namespace DataHandlingBPlusTrees
             {
                 this.Root = new Node(null, value, which, brother);
                 which.Parent = this.Root;
-                which.AdjustMinThresholds();
+                //which.AdjustMinThresholds();
                 brother.Parent = this.Root;
-                brother.AdjustMinThresholds();
+                //brother.AdjustMinThresholds();
             }
             else
             {
                 Node parent = which.Parent;
                 int whichIndex = Array.IndexOf(parent.Pointers, which);
                 // if (ArrayHandler.GetIndexOfLastElement(parent.Pointers) < parent.MaxPointers - 1)
-                if (ArrayHandler.GetIndexOfLastElement(parent.Pointers) + 1 < parent.MaxPointers)
+                if (ArrayHandler.GetIndexOfLastElement(parent.Pointers) + 1 < parent.MaxPointers())
                 {
                     //CHECK this after finishing switch                        
                     ArrayHandler.InsertAt(whichIndex, parent.Keys, value);
@@ -269,12 +269,12 @@ namespace DataHandlingBPlusTrees
                     ArrayHandler.RemoveFrom(0, parent.Keys);
                     ArrayHandler.RemoveFrom(0, parent.Pointers);
                     Node uncle = new Node(parent, parent.IsLeaf());
-                    for (int i = 0; i < temp.SecondHalfFirstIndex; i++)
+                    for (int i = 0; i < temp.SecondHalfFirstIndex(); i++)
                     {
                         parent.Keys[i] = temp.Keys[i];
                         parent.Pointers[i] = temp.Pointers[i];
                     }
-                    for (int i = 0, j = temp.SecondHalfFirstIndex; j < temp.Keys.Length; i++, j++)
+                    for (int i = 0, j = temp.SecondHalfFirstIndex(); j < temp.Keys.Length; i++, j++)
                     {
                         uncle.Keys[i] = temp.Keys[j];
                         uncle.Pointers[i] = temp.Pointers[j+1];
@@ -337,7 +337,7 @@ namespace DataHandlingBPlusTrees
                 this.Root = target.Pointers[0];
                 target.Pointers[0].Parent = null;
             }
-            else if (ArrayHandler.GetIndexOfLastElement(target.Keys) < target.MinKeys)
+            else if (ArrayHandler.GetIndexOfLastElement(target.Keys) < target.MinKeys())
             {
                 int indexOfTargetInParent = Array.IndexOf(target.Parent.Pointers, target);
                 int indexOfBrotherInParent;
@@ -348,13 +348,13 @@ namespace DataHandlingBPlusTrees
                     brother = target.Parent.Pointers[indexOfTargetInParent - 1];
                     valueBetween = target.Parent.Keys[indexOfTargetInParent - 1];
                 }
-                else if (indexOfTargetInParent < target.Parent.MaxPointers)
+                else if (indexOfTargetInParent < target.Parent.MaxPointers())
                 {
                     brother = target.Parent.Pointers[indexOfTargetInParent + 1];
                     valueBetween = target.Parent.Keys[indexOfTargetInParent];
                 }
                 indexOfBrotherInParent = Array.IndexOf(brother.Parent.Pointers, brother);
-                if (ArrayHandler.GetIndexOfLastElement(target.Keys) +1 + ArrayHandler.GetIndexOfLastElement(brother.Keys) + 1 <= target.MaxKeys)
+                if (ArrayHandler.GetIndexOfLastElement(target.Keys) +1 + ArrayHandler.GetIndexOfLastElement(brother.Keys) + 1 <= target.MaxKeys())
                 {
                     if (indexOfTargetInParent < indexOfBrotherInParent)
                     {
