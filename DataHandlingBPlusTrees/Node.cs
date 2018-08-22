@@ -42,8 +42,9 @@ namespace DataHandlingBPlusTrees
         public Node NextNode { get; set; }
 
         // Basic constructor
-        public Node()
+        public Node(Node parent = null)
         {
+            this.Parent = parent;
             this.MinKeys = this.IsRoot() ? 1 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2) - 1);
             this.MaxKeys = Node.Degree - 1;
             this.MinPointers = this.IsRoot() ? 2 : (this.IsLeaf() ? (int)Math.Ceiling((decimal)(Node.Degree - 1) / 2) : (int)Math.Ceiling((decimal)Node.Degree / 2));
@@ -51,14 +52,14 @@ namespace DataHandlingBPlusTrees
         }
 
         // Copy constructor
-        public Node(Node n, int extraroom = 0) : this()
+        public Node(Node n, int extraroom = 0) : this(n.Parent)
         {
             if (extraroom > 0)
             {
                 this.MaxKeys += extraroom;
                 this.MaxPointers += extraroom;
             }
-            this.Parent = n.Parent;
+            //this.Parent = n.Parent;
             this.Keys = new string[this.MaxKeys];
             Array.Copy(n.Keys, this.Keys, n.Keys.Length);
             if (n.IsLeaf())
@@ -75,9 +76,9 @@ namespace DataHandlingBPlusTrees
         }
 
         // Constructor called by BPlusTree.SplitNode(target)
-        public Node(Node parent, bool isLeaf = false) : this()
+        public Node(Node parent, bool isLeaf = false) : this(parent)
         {
-            this.Parent = parent;
+            //this.Parent = parent;
             this.Keys = new string[this.MaxKeys];
             if (isLeaf)
             {

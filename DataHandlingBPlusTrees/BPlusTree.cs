@@ -71,6 +71,7 @@ namespace DataHandlingBPlusTrees
                     if (value.CompareTo(currentNode.Keys[i]) == 0)
                     {
                         results = new Tuple<Node, int>(currentNode, i);
+                        break;
                     }
                     else if (value.CompareTo(currentNode.Keys[i]) < 0 || currentNode.Keys[i] == null)
                     {
@@ -203,6 +204,22 @@ namespace DataHandlingBPlusTrees
             }
         }
 
+        private void AdjustMinThresholdsAllLeafs()
+        {
+            Node node = this.Root;
+            while (!node.IsLeaf())
+            {
+                node = node.Pointers[0];
+            }
+
+            while (node.NextNode != null)
+            {
+                node.AdjustMinThresholds();
+                node = node.NextNode;
+            }
+            node.AdjustMinThresholds();
+        }
+
         /// <summary>
         /// Helper method for the insertion algorithm
         /// </summary>
@@ -230,6 +247,7 @@ namespace DataHandlingBPlusTrees
                 which.Parent = this.Root;
                 which.AdjustMinThresholds();
                 brother.Parent = this.Root;
+                brother.AdjustMinThresholds();
             }
             else
             {
@@ -264,10 +282,12 @@ namespace DataHandlingBPlusTrees
                     //ArrayHandler.InsertAt(uncle.FirstInsertionIndex, uncle.Keys, value);
                     //ArrayHandler.InsertAt(uncle.FirstInsertionIndex, uncle.Pointers, brother);
                     brother.Parent = uncle;
+                    //brother.AdjustMinThresholds();
                     for (int i = 0; i <= ArrayHandler.GetIndexOfLastElement(uncle.Pointers); i++)
                     {
                         uncle.Pointers[i].Parent = uncle;
                     }
+                    //uncle.AdjustMinThresholds();
                     InsertInParent(parent, uncle.Keys[0], uncle);
                 }
             }
@@ -295,7 +315,10 @@ namespace DataHandlingBPlusTrees
             Node target = searchResult.Item1;
             int index = searchResult.Item2;
             RecordPointer targetRecordPointer = target.RecordPointers[index];
-            DeleteEntry(target, value, null, targetRecordPointer);
+            // temporary (there is a bug with the some of the leafs, where the min threshold is that of a root node
+            //this.AdjustMinThresholdsAllLeafs();
+            // end temporary
+            DeleteEntry(target, index, value, null, targetRecordPointer);
         }
 
         /// <summary>
@@ -305,16 +328,16 @@ namespace DataHandlingBPlusTrees
         /// <param name="value">Value to remove</param>
         /// <param name="targetRecordPointer">Recordpointer to remove along with the value</param>
         // need to implement recursive bottom up deletion
-        private void DeleteEntry(Node target, string value, Node targetPointer = null , RecordPointer targetRecordPointer = null)
+        private void DeleteEntry(Node target, int index, string value, Node targetPointer = null , RecordPointer targetRecordPointer = null)
         {
-            ArrayHandler.RemoveAt(Array.IndexOf(target.Keys, value), target.Keys);
-            ArrayHandler.RemoveAt(Array.IndexOf(target.RecordPointers, targetRecordPointer), target.RecordPointers);
+            ArrayHandler.RemoveAt(index, target.Keys);
+            ArrayHandler.RemoveAt(index, target.RecordPointers);
             if (target.IsRoot() && target.Pointers.Length == 1)
             {
                 this.Root = target.Pointers[0];
                 target.Pointers[0].Parent = null;
             }
-            else if (target.Keys.Length < target.MinKeys)
+            else if (ArrayHandler.GetIndexOfLastElement(target.Keys) < target.MinKeys)
             {
                 int indexOfTargetInParent = Array.IndexOf(target.Parent.Pointers, target);
                 int indexOfBrotherInParent;
@@ -328,16 +351,16 @@ namespace DataHandlingBPlusTrees
                 else if (indexOfTargetInParent < target.Parent.MaxPointers)
                 {
                     brother = target.Parent.Pointers[indexOfTargetInParent + 1];
-                    valueBetween = target.Parent.Keys[indexOfTargetInParent + 1];
+                    valueBetween = target.Parent.Keys[indexOfTargetInParent];
                 }
                 indexOfBrotherInParent = Array.IndexOf(brother.Parent.Pointers, brother);
-                if (target.Keys.Length + brother.Keys.Length <= target.MaxKeys)
+                if (ArrayHandler.GetIndexOfLastElement(target.Keys) +1 + ArrayHandler.GetIndexOfLastElement(brother.Keys) + 1 <= target.MaxKeys)
                 {
                     if (indexOfTargetInParent < indexOfBrotherInParent)
                     {
-                        Node temp = new Node(target, target.IsLeaf());
-                        target = new Node(brother, brother.IsLeaf());
-                        brother = new Node(temp, temp.IsLeaf());
+                        Node temp = new Node(target, 0);
+                        target = new Node(brother, 0);
+                        brother = new Node(temp, 0);
                         if (!target.IsLeaf())
                         {
                             Array.Copy(target.Keys, 0, brother.Keys, ArrayHandler.GetIndexOfLastElement(brother.Keys) + 1, target.Keys.Length);
@@ -353,7 +376,7 @@ namespace DataHandlingBPlusTrees
                             //brother.RecordPointers.AddRange(target.RecordPointers);
                             brother.NextNode = target.NextNode;
                             //TO ADD after updating the function arguments
-                            DeleteEntry(target.Parent, valueBetween, target, null);
+                            //DeleteEntry(target.Parent, iiiiindex, valueBetween, target, null);
                         }
                     }
                 }

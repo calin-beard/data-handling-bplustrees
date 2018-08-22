@@ -96,7 +96,7 @@ namespace DataHandlingBPlusTrees
                 { "m", new RecordPointer()},
                 { "n", new RecordPointer()},
                 { "t", new RecordPointer()},
-                { "c", new RecordPointer()},
+                //{ "c", new RecordPointer()},
                 //{ "e", new RecordPointer()},
                 //{ "r", new RecordPointer()},
                 //{ "u", new RecordPointer()},
@@ -108,6 +108,10 @@ namespace DataHandlingBPlusTrees
 
             tree.Delete("d");
             tree.Delete("g");
+            tree.Delete("k");
+            tree.Delete("q");
+            tree.Delete("y");
+            tree.Delete("i");
 
             Draw(tree.Root, Main);
 
