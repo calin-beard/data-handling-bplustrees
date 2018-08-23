@@ -137,7 +137,7 @@ namespace DataHandlingBPlusTrees
         // Destructor
         ~Node()
         {
-            Console.WriteLine("The destructor for " + this + " is called");
+            //Console.WriteLine("The destructor for " + this + " is called");
         }
 
         //public void AdjustMinThresholds()

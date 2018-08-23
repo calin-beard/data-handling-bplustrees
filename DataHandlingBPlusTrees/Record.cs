@@ -11,8 +11,8 @@ namespace DataHandlingBPlusTrees
     {
         //public List<string> Attributes { get; set; }
         public Dictionary<string, string> Attributes { get; set; }
-        private string Separator { get; set; } = ",";
-        private string Terminator { get; set; } = ";";
+        public static string Separator { get; set; } = ",";
+        public static string Terminator { get; set; } = ";";
         private int ExpectedAttributeCount { get; set; }
 
         public Record() { }
@@ -81,10 +81,10 @@ namespace DataHandlingBPlusTrees
             string result = "";
             foreach (KeyValuePair<string, string> element in this.Attributes)
             {
-                result += element.Value + this.Separator;
+                result += element.Value + Record.Separator;
             }
             result = result.Substring(0, result.Length - 1);
-            result += this.Terminator;
+            result += Record.Terminator;
 
             return result;
         }

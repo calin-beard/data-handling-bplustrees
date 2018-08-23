@@ -67,8 +67,18 @@ namespace DataHandlingBPlusTrees
                 new Attributte("name", false, true, false),
                 new Attributte("firstname", false, true, false)
             });
-            Record r = new Record(rel.AttributeNames, "1,Barburescu,Calin;");
-            rel.File.WriteRecord(r.ToString());
+            Record r1 = new Record(rel.AttributeNames, "1,Barburescu,Calin;");
+            Record r2 = new Record(rel.AttributeNames, "2,Gavrila,Cristina;");
+            Record r3 = new Record(rel.AttributeNames, "3,Preda,Andreia;");
+            rel.File.WriteRecord(r1.ToString());
+            rel.File.WriteRecord(r2.ToString());
+            rel.File.WriteRecord(r3.ToString());
+            rel.File.DeleteRecord(4096 + 64 + 64);
+            rel.File.DeleteRecord(4096);
+            rel.File.DeleteRecord(4096 + 64);
+            rel.File.WriteRecord(r1.ToString());
+            rel.File.WriteRecord(r2.ToString());
+            rel.File.WriteRecord(r3.ToString());
             DisplayRelation();
 
             int degree = 6;
@@ -245,8 +255,8 @@ namespace DataHandlingBPlusTrees
         public void NodeFinishedLoading(object sender, RoutedEventArgs e)
         {
             StackPanel s = sender as StackPanel;
-            Console.WriteLine("-----Width of " + s.ToString() + " is " + s.ActualWidth);
-            Console.WriteLine("-----Midpoint of " + s.ToString() + " is " + s.PointToScreen(new Point(s.ActualWidth/2, 0)));
+            //Console.WriteLine("-----Width of " + s.ToString() + " is " + s.ActualWidth);
+            //Console.WriteLine("-----Midpoint of " + s.ToString() + " is " + s.PointToScreen(new Point(s.ActualWidth/2, 0)));
         }
 
         public void LeafFinishedLoading(object sender, RoutedEventArgs e)
@@ -255,8 +265,8 @@ namespace DataHandlingBPlusTrees
             Point start = s.PointToScreen(new Point(s.ActualWidth - 5, s.ActualHeight / 2));
             Point end = s.PointToScreen(new Point(5, s.ActualHeight / 2));
             LinkedListArrowCoords.Add(new Tuple<Point, Point>(start, end));
-            Console.WriteLine("-----LL arrow starting point from " + s.ToString() + " is " + start);
-            Console.WriteLine("-----LL arrow ending point from " + s.ToString() + " is " + end);
+            //Console.WriteLine("-----LL arrow starting point from " + s.ToString() + " is " + start);
+            //Console.WriteLine("-----LL arrow ending point from " + s.ToString() + " is " + end);
         }
 
         public void StackPanelSizeChanged(object sender, SizeChangedEventArgs e)
@@ -266,7 +276,7 @@ namespace DataHandlingBPlusTrees
 
         public void FirstKeyLoaded(object sender, RoutedEventArgs e)
         {
-            Console.WriteLine("----------------" + (sender as Border).PointToScreen(new Point(0, 0)));
+            //Console.WriteLine("----------------" + (sender as Border).PointToScreen(new Point(0, 0)));
         }
 
         public void TreeLoaded(object sender, RoutedEventArgs e)
