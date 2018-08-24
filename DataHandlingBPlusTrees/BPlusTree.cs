@@ -8,21 +8,22 @@ namespace DataHandlingBPlusTrees
 {
     class BPlusTree<K>
     {
-        private const int _DEGREE = 6;
+        private const int DEGREE = 6;
 
         private static int Degree { get; set; }
 
-        private Node Root { get; set; }
+        public Node Root { get; set; }
 
-        public BPlusTree() : this(_DEGREE) { }
+        public BPlusTree() : this(DEGREE) { }
 
-        public BPlusTree(int degree)
+        public BPlusTree(int _degree)
         {
-            if (degree <= 2)
+            if (_degree <= 2)
             {
-                throw new ArgumentException("The degree of the B+ tree is " + degree + ".It should be >= 3");
+                throw new ArgumentException("The degree of the B+ tree is " + _degree + ".It should be >= 3");
             }
-            BPlusTree<K>.Degree = degree;
+            BPlusTree<K>.Degree = _degree;
+            this.Root = new LeafNode(this);
         }
 
         public Tuple<Node, int> Find(K value)
@@ -42,6 +43,7 @@ namespace DataHandlingBPlusTrees
 
         public abstract class Node
         {
+            public BPlusTree<K> BPTree { get; set; }
             public Node Parent { get; set; }
             public K[] Keys { get; set; }
 
@@ -50,6 +52,17 @@ namespace DataHandlingBPlusTrees
             public abstract void InsertValue(K value, RecordPointer rp);
 
             public abstract void DeleteValue(K value);
+
+            public void MakeNewRoot(Node brother)
+            {
+                InternalNode newRoot = new InternalNode(this.BPTree);
+                newRoot.Keys[0] = brother.GetFirstLeafKey();
+                newRoot.Pointers[0] = this;
+                newRoot.Pointers[1] = brother;
+                this.Parent = newRoot;
+                brother.Parent = newRoot;
+                this.BPTree.Root = newRoot;
+            }
 
             public abstract K GetFirstLeafKey();
 
@@ -62,6 +75,10 @@ namespace DataHandlingBPlusTrees
 
             protected abstract int MinPointers();
             protected abstract int MaxPointers();
+
+            public abstract bool IsUnderflow();
+
+            public abstract bool IsOverflow();
 
             public bool IsRoot()
             {
@@ -76,10 +93,11 @@ namespace DataHandlingBPlusTrees
 
         private class InternalNode : Node
         {
-            Node[] Pointers { get; set; }
+            public Node[] Pointers { get; set; }
 
-            public InternalNode()
+            public InternalNode(BPlusTree<K> _bptree)
             {
+                this.BPTree = _bptree;
                 this.Keys = new K[this.MaxKeys()];
                 this.Pointers = new Node[this.MaxPointers()];
             }
@@ -91,8 +109,19 @@ namespace DataHandlingBPlusTrees
 
             public override void InsertValue(K value, RecordPointer rp)
             {
-                // TO DO
-                throw new NotImplementedException();
+                Node child = this.GetChild(value);
+                child.InsertValue(value, rp);
+                if (child.IsOverflow())
+                {
+                    Node brother = this.Split();
+                    brother.Parent = this.Parent;
+                    this.InsertChild(brother.GetFirstLeafKey(), brother);
+                }
+                if (this.BPTree.Root.IsOverflow())
+                {
+                    Node brother = this.Split();
+                    this.MakeNewRoot(brother);
+                }
             }
 
             public override void DeleteValue(K value)
@@ -138,11 +167,37 @@ namespace DataHandlingBPlusTrees
                 return BPlusTree<K>.Degree;
             }
 
+            public override bool IsUnderflow()
+            {
+                // TO DO
+                throw new NotImplementedException();
+            }
+
+            public override bool IsOverflow()
+            {
+                return ArrayHandler.GetIndexOfLastElement(this.Pointers) + 1 > this.MaxPointers();
+            }
+
             protected Node GetChild(K value)
             {
                 int where = Array.BinarySearch(this.Keys, value);
                 int childIndex = where >= 0 ? where + 1 : -where;
                 return this.Pointers[childIndex];
+            }
+
+            protected void InsertChild(K value, Node child)
+            {
+                int where = Array.BinarySearch(this.Keys, value);
+                int childIndex = where >= 0 ? where + 1 : where;
+                if (where >= 0)
+                {
+                    this.Pointers[childIndex] = child;
+                }
+                else
+                {
+                    this.Keys[childIndex] = value;
+                    this.Pointers[childIndex + 1] = child;
+                }
             }
         }
 
@@ -152,8 +207,9 @@ namespace DataHandlingBPlusTrees
 
             LeafNode Next { get; set; }
 
-            public LeafNode()
+            public LeafNode(BPlusTree<K> _bptree)
             {
+                this.BPTree = _bptree;
                 this.Keys = new K[this.MaxKeys()];
                 this.RecordPointers = new RecordPointer[this.MaxPointers()];
             }
@@ -166,8 +222,22 @@ namespace DataHandlingBPlusTrees
 
             public override void InsertValue(K value, RecordPointer rp)
             {
-                // TO DO
-                throw new NotImplementedException();
+                int where = Array.BinarySearch(this.Keys, value);
+                int valueIndex = where >= 0 ? where : -where;
+                if (where >= 0)
+                {
+                    this.RecordPointers[valueIndex] = rp;
+                }
+                else
+                {
+                    this.Keys[valueIndex] = value;
+                    this.RecordPointers[valueIndex] = rp;
+                }
+                if (this.BPTree.Root.IsOverflow())
+                {
+                    Node brother = this.Split();
+                    this.MakeNewRoot(brother);
+                }
             }
 
             public override void DeleteValue(K value)
@@ -211,6 +281,17 @@ namespace DataHandlingBPlusTrees
             protected override int MaxPointers()
             {
                 return BPlusTree<K>.Degree - 1;
+            }
+
+            public override bool IsUnderflow()
+            {
+                // TO DO
+                throw new NotImplementedException();
+            }
+
+            public override bool IsOverflow()
+            {
+                return ArrayHandler.GetIndexOfLastElement(this.RecordPointers) + 1 > this.MaxPointers();
             }
         }
     }
