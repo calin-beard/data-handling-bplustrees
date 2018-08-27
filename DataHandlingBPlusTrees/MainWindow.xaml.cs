@@ -84,83 +84,26 @@ namespace DataHandlingBPlusTrees
             int degree = 6;
             BPlusTree<int> tree = new BPlusTree<int>(degree);
 
-            Dictionary<int, RecordPointer<int>> ids = new Dictionary<int, RecordPointer<int>>
+            int[] numbers = new int[] { 17, 10, 12, 7, 6, 14, 5, 9, 16, 13, 2, 20, 11, 3, 4, 15, 1, 19, 18, 8 };
+            Dictionary<int, RecordPointer<int>> ids = new Dictionary<int, RecordPointer<int>>();
+
+            foreach (int number in numbers)
             {
-                { 7, new RecordPointer<int>() },
-                { 10, new RecordPointer<int>() },
-                { 19, new RecordPointer<int>() },
-                { 15, new RecordPointer<int>() },
-                { 1, new RecordPointer<int>() },
-                { 2, new RecordPointer<int>() },
-                { 25, new RecordPointer<int>() },
-                { 11, new RecordPointer<int>() },
-                //{ 6, new RecordPointer<int>() },
-                //{ 13, new RecordPointer<int>() },
-                //{ 14, new RecordPointer<int>() },
-                //{ 21, new RecordPointer<int>() },
-                //{ 16, new RecordPointer<int>() },
-                //{ 12, new RecordPointer<int>() },
-                //{ 8, new RecordPointer<int>() },
-                //{ 24, new RecordPointer<int>() },
-                //{ 18, new RecordPointer<int>() },
-                //{ 5, new RecordPointer<int>() },
-                //{ 3, new RecordPointer<int>() },
-                //{ 20, new RecordPointer<int>() },
-                //{ 22, new RecordPointer<int>() },
-            };
+                ids.Add(number, new RecordPointer<int>(number, 0, 0));
+            }
 
             tree.InsertMultiple(ids);
 
-            tree.Delete(10);
-            tree.Delete(19);
-            tree.Delete(25);
+            RecordPointer<int> rp = tree.Find(7);
+            //Console.WriteLine("Found record pointer for 7 --- " + rp.Value);
+
+            List<RecordPointer<int>> recps = tree.FindRange(5, 7);
+            foreach(RecordPointer<int> el in recps)
+            {
+                Console.WriteLine($"Found record pointer for --- {el.Value}");
+            }
 
             //Draw(tree.Root, Main);
-
-            ////Dictionary<string, RecordPointer> searchKeys = new Dictionary<string, RecordPointer>
-            //{
-            //    { "d", new RecordPointer<int>()},
-            //    { "s", new RecordPointer<int>()},
-            //    { "g", new RecordPointer<int>()},
-            //    { "a", new RecordPointer<int>()},
-            //    { "w", new RecordPointer<int>()},
-            //    { "o", new RecordPointer<int>()},
-            //    { "v", new RecordPointer<int>()},
-            //    { "h", new RecordPointer<int>()},
-            //    { "q", new RecordPointer<int>()},
-            //    { "z", new RecordPointer<int>()},
-            //    { "y", new RecordPointer<int>()},
-            //    { "p", new RecordPointer<int>()},
-            //    { "j", new RecordPointer<int>()},
-            //    { "b", new RecordPointer<int>()},
-            //    { "k", new RecordPointer<int>()},
-            //    { "l", new RecordPointer<int>()},
-            //    { "i", new RecordPointer<int>()},
-            //    { "m", new RecordPointer<int>()},
-            //    { "n", new RecordPointer<int>()},
-            //    { "t", new RecordPointer<int>()},
-            //    { "c", new RecordPointer<int>()},
-            //    { "e", new RecordPointer<int>()},
-            //    { "r", new RecordPointer<int>()},
-            //    { "u", new RecordPointer<int>()},
-            //    { "x", new RecordPointer<int>()},
-            //    { "f", new RecordPointer<int>()},
-            //};
-
-
-
-            //Console.WriteLine("---- MinKeys" + tree.Root.Pointers[0].Pointers[0].MinKeys());
-            //Console.WriteLine("---- MaxKeys" + tree.Root.Pointers[0].Pointers[0].MaxKeys());
-            //Console.WriteLine("---- MinPointers" + tree.Root.Pointers[0].Pointers[0].MinPointers());
-            //Console.WriteLine("---- MaxPointers" + tree.Root.Pointers[0].Pointers[0].MaxPointers());
-
-            //tree.Delete("d");
-            //tree.Delete("g");
-            //tree.Delete("k");
-            //tree.Delete("q");
-            //tree.Delete("y");
-            //tree.Delete("i");
-
 
 
             //CTreeView sampleCTreeView = new CTreeView();

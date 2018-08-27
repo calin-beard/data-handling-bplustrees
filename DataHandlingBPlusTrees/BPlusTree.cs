@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DataHandlingBPlusTrees
 {
-    class BPlusTree<K>
+    class BPlusTree<K> where K : IComparable
     {
         private const int DEGREE = 6;
 
@@ -15,7 +15,7 @@ namespace DataHandlingBPlusTrees
 
         public Node Root { get; set; }
 
-        public BPlusTree(K maxvalue) : this(DEGREE) { }
+        public BPlusTree() : this(DEGREE) { }
 
         public BPlusTree(int _degree)
         {
@@ -27,9 +27,14 @@ namespace DataHandlingBPlusTrees
             this.Root = new LeafNode(this);
         }
 
-        public Tuple<Node, int> Find(K value)
+        public RecordPointer<K> Find(K value)
         {
             return Root.GetValue(value);
+        }
+
+        public List<RecordPointer<K>> FindRange(K value1, K value2)
+        {
+            return this.Root.GetRange(value1, value2);
         }
         
         public void Insert(K value, RecordPointer<K> rp)
@@ -55,7 +60,9 @@ namespace DataHandlingBPlusTrees
             public Node Parent { get; set; }
             public List<K> Keys { get; set; }
 
-            public abstract Tuple<Node, int> GetValue(K value);
+            public abstract RecordPointer<K> GetValue(K value);
+
+            public abstract List<RecordPointer<K>> GetRange(K value1, K value2);
 
             public abstract void InsertValue(K value, RecordPointer<K> rp);
 
@@ -110,9 +117,14 @@ namespace DataHandlingBPlusTrees
                 this.Pointers = new List<Node>(this.MaxPointers());
             }
 
-            public override Tuple<Node, int> GetValue(K value)
+            public override RecordPointer<K> GetValue(K value)
             {
                 return this.GetChild(value).GetValue(value);
+            }
+
+            public override List<RecordPointer<K>> GetRange(K value1, K value2)
+            {
+                return this.GetChild(value1).GetRange(value1, value2);
             }
 
             public override void InsertValue(K value, RecordPointer<K> rp)
@@ -294,10 +306,42 @@ namespace DataHandlingBPlusTrees
                 this.RecordPointers = new List<RecordPointer<K>>(this.MaxPointers());
             }
 
-            public override Tuple<Node, int> GetValue(K value)
+            public override RecordPointer<K> GetValue(K value)
             {
                 int where = this.Keys.BinarySearch(value);
-                return new Tuple<Node, int>(this, where);
+                if (where >= 0)
+                {
+                    return this.RecordPointers.ElementAt(where);
+                }
+                return null;
+            }
+
+            public override List<RecordPointer<K>> GetRange(K value1, K value2)
+            {
+                List<RecordPointer<K>> results = new List<RecordPointer<K>>();
+                LeafNode node = this;
+                while (node != null)
+                {
+                    IEnumerator<K> valueEnumerator = node.Keys.GetEnumerator();
+                    IEnumerator<RecordPointer<K>> rpEnumerator = node.RecordPointers.GetEnumerator();
+                    while (valueEnumerator.MoveNext() && rpEnumerator.MoveNext())
+                    {
+                        K value = valueEnumerator.Current;
+                        RecordPointer<K> rp = rpEnumerator.Current;
+                        int c1 = value.CompareTo(value1);
+                        int c2 = value.CompareTo(value2);
+                        if (c1 >= 0 && c2 <=0)
+                        {
+                            results.Add(rp);
+                        }
+                        else if (c2 > 0)
+                        {
+                            return results;
+                        }
+                    }
+                    node = node.Next;
+                }
+                return results;
             }
 
             public override void InsertValue(K value, RecordPointer<K> rp)
