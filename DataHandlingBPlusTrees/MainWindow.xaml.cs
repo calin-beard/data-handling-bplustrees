@@ -82,44 +82,77 @@ namespace DataHandlingBPlusTrees
             DisplayRelation();
 
             int degree = 6;
-            BPlusTree tree = new BPlusTree(degree);
+            BPlusTree<int> tree = new BPlusTree<int>(degree);
 
-            Dictionary<string, RecordPointer> searchKeys = new Dictionary<string, RecordPointer>
+            Dictionary<int, RecordPointer<int>> ids = new Dictionary<int, RecordPointer<int>>
             {
-                { "d", new RecordPointer()},
-                { "s", new RecordPointer()},
-                { "g", new RecordPointer()},
-                { "a", new RecordPointer()},
-                { "w", new RecordPointer()},
-                { "o", new RecordPointer()},
-                { "v", new RecordPointer()},
-                { "h", new RecordPointer()},
-                { "q", new RecordPointer()},
-                { "z", new RecordPointer()},
-                { "y", new RecordPointer()},
-                { "p", new RecordPointer()},
-                { "j", new RecordPointer()},
-                { "b", new RecordPointer()},
-                { "k", new RecordPointer()},
-                { "l", new RecordPointer()},
-                { "i", new RecordPointer()},
-                { "m", new RecordPointer()},
-                { "n", new RecordPointer()},
-                { "t", new RecordPointer()},
-                { "c", new RecordPointer()},
-                { "e", new RecordPointer()},
-                { "r", new RecordPointer()},
-                { "u", new RecordPointer()},
-                { "x", new RecordPointer()},
-                { "f", new RecordPointer()},
+                { 7, new RecordPointer<int>() },
+                { 10, new RecordPointer<int>() },
+                { 19, new RecordPointer<int>() },
+                { 15, new RecordPointer<int>() },
+                { 1, new RecordPointer<int>() },
+                { 2, new RecordPointer<int>() },
+                { 25, new RecordPointer<int>() },
+                { 11, new RecordPointer<int>() },
+                //{ 6, new RecordPointer<int>() },
+                //{ 13, new RecordPointer<int>() },
+                //{ 14, new RecordPointer<int>() },
+                //{ 21, new RecordPointer<int>() },
+                //{ 16, new RecordPointer<int>() },
+                //{ 12, new RecordPointer<int>() },
+                //{ 8, new RecordPointer<int>() },
+                //{ 24, new RecordPointer<int>() },
+                //{ 18, new RecordPointer<int>() },
+                //{ 5, new RecordPointer<int>() },
+                //{ 3, new RecordPointer<int>() },
+                //{ 20, new RecordPointer<int>() },
+                //{ 22, new RecordPointer<int>() },
             };
 
-            tree.InsertMultiple(searchKeys);
+            tree.InsertMultiple(ids);
 
-            Console.WriteLine("---- MinKeys" + tree.Root.Pointers[0].Pointers[0].MinKeys());
-            Console.WriteLine("---- MaxKeys" + tree.Root.Pointers[0].Pointers[0].MaxKeys());
-            Console.WriteLine("---- MinPointers" + tree.Root.Pointers[0].Pointers[0].MinPointers());
-            Console.WriteLine("---- MaxPointers" + tree.Root.Pointers[0].Pointers[0].MaxPointers());
+            tree.Delete(10);
+            tree.Delete(19);
+            tree.Delete(25);
+
+            //Draw(tree.Root, Main);
+
+            ////Dictionary<string, RecordPointer> searchKeys = new Dictionary<string, RecordPointer>
+            //{
+            //    { "d", new RecordPointer<int>()},
+            //    { "s", new RecordPointer<int>()},
+            //    { "g", new RecordPointer<int>()},
+            //    { "a", new RecordPointer<int>()},
+            //    { "w", new RecordPointer<int>()},
+            //    { "o", new RecordPointer<int>()},
+            //    { "v", new RecordPointer<int>()},
+            //    { "h", new RecordPointer<int>()},
+            //    { "q", new RecordPointer<int>()},
+            //    { "z", new RecordPointer<int>()},
+            //    { "y", new RecordPointer<int>()},
+            //    { "p", new RecordPointer<int>()},
+            //    { "j", new RecordPointer<int>()},
+            //    { "b", new RecordPointer<int>()},
+            //    { "k", new RecordPointer<int>()},
+            //    { "l", new RecordPointer<int>()},
+            //    { "i", new RecordPointer<int>()},
+            //    { "m", new RecordPointer<int>()},
+            //    { "n", new RecordPointer<int>()},
+            //    { "t", new RecordPointer<int>()},
+            //    { "c", new RecordPointer<int>()},
+            //    { "e", new RecordPointer<int>()},
+            //    { "r", new RecordPointer<int>()},
+            //    { "u", new RecordPointer<int>()},
+            //    { "x", new RecordPointer<int>()},
+            //    { "f", new RecordPointer<int>()},
+            //};
+
+
+
+            //Console.WriteLine("---- MinKeys" + tree.Root.Pointers[0].Pointers[0].MinKeys());
+            //Console.WriteLine("---- MaxKeys" + tree.Root.Pointers[0].Pointers[0].MaxKeys());
+            //Console.WriteLine("---- MinPointers" + tree.Root.Pointers[0].Pointers[0].MinPointers());
+            //Console.WriteLine("---- MaxPointers" + tree.Root.Pointers[0].Pointers[0].MaxPointers());
 
             //tree.Delete("d");
             //tree.Delete("g");
@@ -128,7 +161,7 @@ namespace DataHandlingBPlusTrees
             //tree.Delete("y");
             //tree.Delete("i");
 
-            Draw(tree.Root, Main);
+
 
             //CTreeView sampleCTreeView = new CTreeView();
             //Main.Pointers.Add(sampleCTreeView);
@@ -141,90 +174,90 @@ namespace DataHandlingBPlusTrees
             //sampleCTreeView.EndUpdate();
         }
 
-        private void Draw(Node node, StackPanel sp)
-        {
-            //add new line (stack panel) to the parent stack panel
-            if (node.IsRoot() || Array.IndexOf(node.Parent.Pointers, node) == 0)
-            {
-                StackPanel childPanel = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(10)
-                };
-                sp.Children.Add(childPanel);
-            }
+        //private void Draw(BPlusTree<int>.Node node, StackPanel sp)
+        //{
+        //    //add new line (stack panel) to the parent stack panel
+        //    if (node.IsRoot() || Array.IndexOf(node.Parent.Pointers, node) == 0)
+        //    {
+        //        StackPanel childPanel = new StackPanel
+        //        {
+        //            Orientation = Orientation.Horizontal,
+        //            HorizontalAlignment = HorizontalAlignment.Center,
+        //            Margin = new Thickness(10)
+        //        };
+        //        sp.Children.Add(childPanel);
+        //    }
 
-            // adds new node at the end of the row
-            StackPanel lastChildPanel = sp.Children[sp.Children.Count - 1] as StackPanel;
-            StackPanel grandchild = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                //Width = 10,
-                Margin = new Thickness(5)
-            };
-            lastChildPanel.Children.Add(grandchild);
+        //    // adds new node at the end of the row
+        //    StackPanel lastChildPanel = sp.Children[sp.Children.Count - 1] as StackPanel;
+        //    StackPanel grandchild = new StackPanel
+        //    {
+        //        Orientation = Orientation.Horizontal,
+        //        HorizontalAlignment = HorizontalAlignment.Center,
+        //        //Width = 10,
+        //        Margin = new Thickness(5)
+        //    };
+        //    lastChildPanel.Children.Add(grandchild);
 
-            // adds keys to the node as labels
-            for (int i = 0; i < node.Keys.Length; i++)
-            {
-                Label n = new Label
-                {
-                    Content = node.Keys[i],
-                    Foreground = Brushes.White,
-                    HorizontalContentAlignment = HorizontalAlignment.Center
-                };
-                Border b = new Border
-                {
-                    BorderBrush = Brushes.DarkGreen,
-                    BorderThickness = new Thickness(1),
-                    Background = Brushes.ForestGreen,
-                    MinWidth = 22,
-                    Child = n,
-                };
-                //b.MouseEnter += new MouseEventHandler(HoverOverKey);
-                //b.MouseLeave += new MouseEventHandler(HoverOverKey);
-                grandchild.Children.Add(b);
-                if (i == 0)
-                {
-                    b.Loaded += new RoutedEventHandler(FirstKeyLoaded);
-                }
-                if (i == node.Keys.Length - 1)
-                {
-                    grandchild.SizeChanged += new SizeChangedEventHandler(StackPanelSizeChanged);
-                    grandchild.Loaded += new RoutedEventHandler(NodeFinishedLoading);
-                    break;
-                }
-            }
+        //    // adds keys to the node as labels
+        //    for (int i = 0; i < node.Keys.Length; i++)
+        //    {
+        //        Label n = new Label
+        //        {
+        //            Content = node.Keys[i],
+        //            Foreground = Brushes.White,
+        //            HorizontalContentAlignment = HorizontalAlignment.Center
+        //        };
+        //        Border b = new Border
+        //        {
+        //            BorderBrush = Brushes.DarkGreen,
+        //            BorderThickness = new Thickness(1),
+        //            Background = Brushes.ForestGreen,
+        //            MinWidth = 22,
+        //            Child = n,
+        //        };
+        //        //b.MouseEnter += new MouseEventHandler(HoverOverKey);
+        //        //b.MouseLeave += new MouseEventHandler(HoverOverKey);
+        //        grandchild.Children.Add(b);
+        //        if (i == 0)
+        //        {
+        //            b.Loaded += new RoutedEventHandler(FirstKeyLoaded);
+        //        }
+        //        if (i == node.Keys.Length - 1)
+        //        {
+        //            grandchild.SizeChanged += new SizeChangedEventHandler(StackPanelSizeChanged);
+        //            grandchild.Loaded += new RoutedEventHandler(NodeFinishedLoading);
+        //            break;
+        //        }
+        //    }
 
-            // draw the arrows for the linked list
-            if (node.IsLeaf())
-            {
-                grandchild.Loaded += new RoutedEventHandler(LeafFinishedLoading);
-                //if (Array.IndexOf(node.Parent.Pointers, node) == ArrayHandler.GetIndexOfLastElement(node.Parent.Pointers))
-                //{
-                //    Main.Loaded += new RoutedEventHandler(TreeLoaded);
-                //}
-            }
-            else
-            {
-                // call the draw method recursively in order to draw the child nodes
-                for (int i = 0; i < node.Pointers.Length; i++)
-                {
-                    if (node.Pointers[i] == null)
-                    {
-                        break;
-                    }
-                    Draw(node.Pointers[i], sp);
-                }
-            }
+        //    // draw the arrows for the linked list
+        //    if (node.IsLeaf())
+        //    {
+        //        grandchild.Loaded += new RoutedEventHandler(LeafFinishedLoading);
+        //        //if (Array.IndexOf(node.Parent.Pointers, node) == ArrayHandler.GetIndexOfLastElement(node.Parent.Pointers))
+        //        //{
+        //        //    Main.Loaded += new RoutedEventHandler(TreeLoaded);
+        //        //}
+        //    }
+        //    else
+        //    {
+        //        // call the draw method recursively in order to draw the child nodes
+        //        for (int i = 0; i < node.Pointers.Length; i++)
+        //        {
+        //            if (node.Pointers[i] == null)
+        //            {
+        //                break;
+        //            }
+        //            Draw(node.Pointers[i], sp);
+        //        }
+        //    }
 
-            if (node.IsRoot())
-            {
-                Main.Loaded += new RoutedEventHandler(TreeLoaded);
-            }
-        }
+        //    if (node.IsRoot())
+        //    {
+        //        Main.Loaded += new RoutedEventHandler(TreeLoaded);
+        //    }
+        //}
 
         private void DrawLinkedList()
         {

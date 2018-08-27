@@ -6,15 +6,19 @@ using System.Threading.Tasks;
 
 namespace DataHandlingBPlusTrees
 {
-    class RecordPointer
+    class RecordPointer<K>
     {
-        public Dictionary<string, string> Pointer;
+        public K Value { get; private set; }
+        public int Block { get; private set; }
+        public int Offset { get; private set; }
 
         public RecordPointer() { }
 
-        public RecordPointer(Dictionary<string, string> pointer)
+        public RecordPointer(K _value, int _block, int _offset)
         {
-            this.Pointer = new Dictionary<string, string>(pointer);
+            this.Value = _value;
+            this.Block = _block;
+            this.Offset = _offset;
         }
     }
 }

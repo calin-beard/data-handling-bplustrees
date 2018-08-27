@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,7 +15,7 @@ namespace DataHandlingBPlusTrees
 
         public Node Root { get; set; }
 
-        public BPlusTree() : this(DEGREE) { }
+        public BPlusTree(K maxvalue) : this(DEGREE) { }
 
         public BPlusTree(int _degree)
         {
@@ -30,10 +31,17 @@ namespace DataHandlingBPlusTrees
         {
             return Root.GetValue(value);
         }
-
-        public void Insert(K value, RecordPointer rp)
+        
+        public void Insert(K value, RecordPointer<K> rp)
         {
             Root.InsertValue(value, rp);
+        }
+        public void InsertMultiple(Dictionary<K, RecordPointer<K>> elements)
+        {
+            foreach (KeyValuePair<K, RecordPointer<K>> element in elements)
+            {
+                this.Insert(element.Key, element.Value);
+            }
         }
 
         public void Delete(K value)
@@ -43,32 +51,32 @@ namespace DataHandlingBPlusTrees
 
         public abstract class Node
         {
-            public BPlusTree<K> BPTree { get; set; }
+            public static BPlusTree<K> BPTree { get; set; }
             public Node Parent { get; set; }
-            public K[] Keys { get; set; }
+            public List<K> Keys { get; set; }
 
             public abstract Tuple<Node, int> GetValue(K value);
 
-            public abstract void InsertValue(K value, RecordPointer rp);
+            public abstract void InsertValue(K value, RecordPointer<K> rp);
 
             public abstract void DeleteValue(K value);
 
-            public void MakeNewRoot(Node brother)
+            public void CreateNewRoot(Node brother)
             {
-                InternalNode newRoot = new InternalNode(this.BPTree);
-                newRoot.Keys[0] = brother.GetFirstLeafKey();
-                newRoot.Pointers[0] = this;
-                newRoot.Pointers[1] = brother;
+                InternalNode newRoot = new InternalNode(BPTree);
+                newRoot.Keys.Add(brother.GetFirstLeafKey());
+                newRoot.Pointers.Add(this);
+                newRoot.Pointers.Add(brother);
                 this.Parent = newRoot;
                 brother.Parent = newRoot;
-                this.BPTree.Root = newRoot;
+                BPTree.Root = newRoot;
             }
 
             public abstract K GetFirstLeafKey();
 
-            protected abstract void Merge(Node brother);
+            public abstract void Merge(Node brother);
 
-            protected abstract Node Split();
+            public abstract Node Split();
 
             protected abstract int MinKeys();
             protected abstract int MaxKeys();
@@ -82,24 +90,24 @@ namespace DataHandlingBPlusTrees
 
             public bool IsRoot()
             {
-                return this.Parent == null;
+                return BPTree.Root == this;
             }
 
             public override string ToString()
             {
-                return (this.IsRoot() ? "Root " : "") + "Node with first key " + this.Keys[0].ToString(); ;
+                return (this.IsRoot() ? "Root " : "") + "Node with first key " + this.Keys.ElementAt(0).ToString(); ;
             }
         }
 
         private class InternalNode : Node
         {
-            public Node[] Pointers { get; set; }
+            public List<Node> Pointers { get; set; }
 
             public InternalNode(BPlusTree<K> _bptree)
             {
-                this.BPTree = _bptree;
-                this.Keys = new K[this.MaxKeys()];
-                this.Pointers = new Node[this.MaxPointers()];
+                BPTree = _bptree;
+                this.Keys = new List<K>(this.MaxKeys());
+                this.Pointers = new List<Node>(this.MaxPointers());
             }
 
             public override Tuple<Node, int> GetValue(K value)
@@ -107,44 +115,76 @@ namespace DataHandlingBPlusTrees
                 return this.GetChild(value).GetValue(value);
             }
 
-            public override void InsertValue(K value, RecordPointer rp)
+            public override void InsertValue(K value, RecordPointer<K> rp)
             {
                 Node child = this.GetChild(value);
                 child.InsertValue(value, rp);
                 if (child.IsOverflow())
                 {
-                    Node brother = this.Split();
-                    brother.Parent = this.Parent;
+                    Node brother = child.Split();
+                    brother.Parent = child.Parent;
                     this.InsertChild(brother.GetFirstLeafKey(), brother);
                 }
-                if (this.BPTree.Root.IsOverflow())
+                if (BPTree.Root.IsOverflow())
                 {
                     Node brother = this.Split();
-                    this.MakeNewRoot(brother);
+                    this.CreateNewRoot(brother);
                 }
             }
 
             public override void DeleteValue(K value)
             {
-                // TO DO
-                throw new NotImplementedException();
+                Node child = this.GetChild(value);
+                child.DeleteValue(value);
+                if (child.IsUnderflow())
+                {
+                    Node childLeftBrother = this.GetChildLeftBrother(value);
+                    Node childRightBrother = this.GetChildRightBrother(value);
+                    Node left = childLeftBrother != null ? childLeftBrother : child;
+                    Node right = childLeftBrother != null ? child : childRightBrother;
+                    left.Merge(right);
+                    this.DeleteChild(right.GetFirstLeafKey());
+                    if (left.IsOverflow())
+                    {
+                        Node brother = left.Split();
+                        this.InsertChild(brother.GetFirstLeafKey(), brother);
+                    }
+                    if (BPTree.Root.IsUnderflow())
+                    {
+                        BPTree.Root = left;
+                        BPTree.Root.Parent = null;
+                    }
+                }
             }
 
             public override K GetFirstLeafKey()
             {
-                return Pointers[0].GetFirstLeafKey();
+                return Pointers.ElementAt(0).GetFirstLeafKey();
             }
 
-            protected override void Merge(Node brother)
+            public override void Merge(Node brother)
             {
-                // TO DO
-                throw new NotImplementedException();
+                InternalNode node = (InternalNode)brother;
+                this.Keys.Add(node.GetFirstLeafKey());
+                this.Keys.AddRange(node.Keys);
+                this.Pointers.AddRange(node.Pointers);
             }
 
-            protected override Node Split()
+            public override Node Split()
             {
-                // TO DO
-                throw new NotImplementedException();
+                InternalNode brother = new InternalNode(BPTree);
+                int from = this.Keys.Count / 2 + 1;
+                int count = this.Keys.Count - from;
+                brother.Keys.AddRange(this.Keys.GetRange(from, count));
+                brother.Pointers.AddRange(this.Pointers.GetRange(from, count + 1));
+                foreach (BPlusTree<K>.Node child in brother.Pointers)
+                {
+                    child.Parent = brother;
+                }
+
+                this.Keys.RemoveRange(from, count);
+                this.Pointers.RemoveRange(from, count + 1);
+                return brother;
             }
 
             protected override int MinKeys()
@@ -169,98 +209,156 @@ namespace DataHandlingBPlusTrees
 
             public override bool IsUnderflow()
             {
-                // TO DO
-                throw new NotImplementedException();
+                return this.Pointers.Count < this.MinPointers();
             }
 
             public override bool IsOverflow()
             {
-                return ArrayHandler.GetIndexOfLastElement(this.Pointers) + 1 > this.MaxPointers();
+                return this.Pointers.Count > this.MaxPointers();
             }
 
             protected Node GetChild(K value)
             {
-                int where = Array.BinarySearch(this.Keys, value);
-                int childIndex = where >= 0 ? where + 1 : -where;
-                return this.Pointers[childIndex];
+                int where = this.Keys.BinarySearch(value);
+                int childIndex = where >= 0 ? where + 1 : -where - 1;
+                return this.Pointers.ElementAt(childIndex);
             }
 
             protected void InsertChild(K value, Node child)
             {
-                int where = Array.BinarySearch(this.Keys, value);
-                int childIndex = where >= 0 ? where + 1 : where;
+                int where = this.Keys.BinarySearch(value);
+                int childIndex = where >= 0 ? where + 1 : -where - 1;
                 if (where >= 0)
                 {
-                    this.Pointers[childIndex] = child;
+                    this.Pointers.Insert(childIndex, child);
                 }
                 else
                 {
-                    this.Keys[childIndex] = value;
-                    this.Pointers[childIndex + 1] = child;
+                    this.Keys.Insert(childIndex, value);
+                    this.Pointers.Insert(childIndex + 1, child);
                 }
+            }
+
+            protected void DeleteChild(K value)
+            {
+                int where = this.Keys.BinarySearch(value);
+                if (where >= 0)
+                {
+                    this.Keys.RemoveAt(where);
+                    this.Pointers.RemoveAt(where + 1);
+                }
+                else
+                {
+                    this.Pointers.Remove(this.GetChild(value));
+                }
+            }
+
+            public Node GetChildLeftBrother(K value)
+            {
+                int where = this.Keys.BinarySearch(value);
+                int childIndex = where >= 0 ? where + 1 : -where - 1;
+                if (childIndex > 0)
+                {
+                    return this.Pointers.ElementAtOrDefault(childIndex - 1);
+                }
+                return null;
+            }
+
+            public Node GetChildRightBrother(K value)
+            {
+                int where = this.Keys.BinarySearch(value);
+                int childIndex = where >= 0 ? where + 1 : -where - 1;
+                if (childIndex < this.Keys.Capacity)
+                {
+                    return this.Pointers.ElementAtOrDefault(childIndex + 1);
+                }
+                return null;
+            }
+
+            public override string ToString()
+            {
+                return (this.IsRoot() ? "Root " : "") + "InternalNode with first key " + this.Keys.ElementAt(0).ToString(); ;
             }
         }
 
         private class LeafNode : Node
         {
-            RecordPointer[] RecordPointers { get; set; }
+            List<RecordPointer<K>> RecordPointers { get; set; }
 
             LeafNode Next { get; set; }
 
             public LeafNode(BPlusTree<K> _bptree)
             {
-                this.BPTree = _bptree;
-                this.Keys = new K[this.MaxKeys()];
-                this.RecordPointers = new RecordPointer[this.MaxPointers()];
+                BPTree = _bptree;
+                this.Keys = new List<K>(this.MaxKeys());
+                this.RecordPointers = new List<RecordPointer<K>>(this.MaxPointers());
             }
 
             public override Tuple<Node, int> GetValue(K value)
             {
-                int where = Array.BinarySearch(this.Keys, value);
+                int where = this.Keys.BinarySearch(value);
                 return new Tuple<Node, int>(this, where);
             }
 
-            public override void InsertValue(K value, RecordPointer rp)
+            public override void InsertValue(K value, RecordPointer<K> rp)
             {
-                int where = Array.BinarySearch(this.Keys, value);
-                int valueIndex = where >= 0 ? where : -where;
+                int where = this.Keys.BinarySearch(value);
+                int valueIndex = where >= 0 ? where : -where - 1;
                 if (where >= 0)
                 {
                     this.RecordPointers[valueIndex] = rp;
                 }
                 else
                 {
-                    this.Keys[valueIndex] = value;
-                    this.RecordPointers[valueIndex] = rp;
+                    this.Keys.Insert(valueIndex, value);
+                    this.RecordPointers.Insert(valueIndex, rp);
                 }
-                if (this.BPTree.Root.IsOverflow())
+                if (BPTree.Root.IsOverflow())
                 {
                     Node brother = this.Split();
-                    this.MakeNewRoot(brother);
+                    this.CreateNewRoot(brother);
                 }
             }
 
             public override void DeleteValue(K value)
             {
-                // TO DO
-                throw new NotImplementedException();
+                int where = this.Keys.BinarySearch(value);
+                if (where >= 0)
+                {
+                    this.Keys.RemoveAt(where);
+                    this.RecordPointers.RemoveAt(where);
+                }
             }
 
             public override K GetFirstLeafKey()
             {
-                return this.Keys[0];
+                return this.Keys.ElementAt(0);
             }
 
-            protected override void Merge(Node brother)
+            public override void Merge(Node brother)
             {
-                // TO DO
-                throw new NotImplementedException();
+                LeafNode node = (LeafNode)brother;
+                this.Keys.AddRange(node.Keys);
+                this.RecordPointers.AddRange(node.RecordPointers);
+                this.Next = node.Next;
             }
 
-            protected override Node Split()
+            public override Node Split()
             {
-                // TO DO
-                throw new NotImplementedException();
+                LeafNode brother = new LeafNode(BPTree);
+                brother.Parent = this.Parent;
+                int from = (this.Keys.Count + 1) / 2;
+                int count = this.Keys.Count - from;
+                brother.Keys.AddRange(this.Keys.GetRange(from, count));
+                brother.RecordPointers.AddRange(this.RecordPointers.GetRange(from, count));
+
+                this.Keys.RemoveRange(from, count);
+                this.RecordPointers.RemoveRange(from, count);
+
+                brother.Next = this.Next;
+                this.Next = brother;
+
+                return brother;
             }
 
             protected override int MinKeys()
@@ -285,13 +383,17 @@ namespace DataHandlingBPlusTrees
 
             public override bool IsUnderflow()
             {
-                // TO DO
-                throw new NotImplementedException();
+                return this.RecordPointers.Count < this.MinPointers();
             }
 
             public override bool IsOverflow()
             {
-                return ArrayHandler.GetIndexOfLastElement(this.RecordPointers) + 1 > this.MaxPointers();
+                return this.RecordPointers.Count > this.MaxPointers();
+            }
+
+            public override string ToString()
+            {
+                return (this.IsRoot() ? "Root " : "") + "LeafNode with first key " + this.Keys.ElementAt(0).ToString(); ;
             }
         }
     }
