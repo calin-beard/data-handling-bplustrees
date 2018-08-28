@@ -87,7 +87,7 @@ namespace DataHandlingBPlusTrees
             SortedDictionary<int, RecordPointer<int>> ids = new SortedDictionary<int, RecordPointer<int>>();
 
             //foreach (int number in numbers)
-            for ( int i = 0; i < 10000; i++)
+            for ( int i = 0; i < 1000000; i++)
             {
                 ids.Add(i, new RecordPointer<int>(i, 0, 0));
             }

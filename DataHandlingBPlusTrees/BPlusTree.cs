@@ -58,16 +58,16 @@ namespace DataHandlingBPlusTrees
             Dictionary<K, LeafNode> leafNodes = leafs.ToDictionary(e => e.GetFirstLeafKey(), e => e);
             SortedDictionary<K, LeafNode> sortedLeafNodes = new SortedDictionary<K, LeafNode>(leafNodes);
             SortedDictionary<K, Node> sortedInputNodes = new SortedDictionary<K, Node>(sortedLeafNodes.ToDictionary(e => e.Key, e => (Node)e.Value));
-            result.Root = BuildUpperLevel<LeafNode>(result, sortedLeafNodes, elements.Count).ElementAtOrDefault(0);
+            result.Root = BuildUpperLevel<LeafNode>(result, sortedLeafNodes).ElementAtOrDefault(0);
 
             return result;
         }
 
-        private static List<InternalNode> BuildUpperLevel<N>(BPlusTree<K> tree, SortedDictionary<K, N> nodes, int totalKeyCount) where N : Node
+        private static List<InternalNode> BuildUpperLevel<N>(BPlusTree<K> tree, SortedDictionary<K, N> nodes) where N : Node
         {
-            if (totalKeyCount < Degree)
+            if (nodes.Count < Degree)
             {
-                List<InternalNode> result =  new List<InternalNode>(1);
+                List<InternalNode> result = new List<InternalNode>(1);
                 InternalNode root = tree.NewInternalNode();
                 root.QuickFill(new Dictionary<K, N>(nodes));
                 result.Add(root);
@@ -79,7 +79,7 @@ namespace DataHandlingBPlusTrees
             Dictionary<K, InternalNode> internalNodes = builtNodes.ToDictionary(e => e.GetFirstLeafKey(), e => e);
             SortedDictionary<K, InternalNode> sortedInternalNodes = new SortedDictionary<K, InternalNode>(internalNodes);
 
-            List<InternalNode> nextNodes =  BuildUpperLevel<InternalNode>(tree, sortedInternalNodes, totalKeyCount);
+            List<InternalNode> nextNodes = BuildUpperLevel<InternalNode>(tree, sortedInternalNodes);
             foreach (InternalNode node in builtNodes)
             {
                 foreach (InternalNode parent in nextNodes)
@@ -100,7 +100,7 @@ namespace DataHandlingBPlusTrees
         {
             List<N> results;
             int totalKeyCount = elements.Count;
-            int tryKeyCountLeaf = (3 * totalKeyCount) / (2 * Degree);
+            int tryKeyCountLeaf = (2 * Degree) / 3;
             Tuple<int, int> keyCountNodeCountLeafs = GetKeyCountNodeCountLevel(tryKeyCountLeaf, totalKeyCount);
             int keyCountLeaf = keyCountNodeCountLeafs.Item1;
             int nodeCountLeafLevel = keyCountNodeCountLeafs.Item2;
@@ -109,6 +109,10 @@ namespace DataHandlingBPlusTrees
             results = new List<N>(nodeCountLeafLevel);
             foreach (Dictionary<K, P> shard in elements.GroupBy(x => counter++ / keyCountLeaf).Select(g => g.ToDictionary(h => h.Key, h => h.Value)))
             {
+                if (typeof(N) == typeof(InternalNode))
+                {
+                    shard.Remove(shard.Keys.First());
+                }
                 N node = tree.NewNode<N>();
                 node.QuickFill(shard);
                 results.Add(node);
@@ -150,7 +154,7 @@ namespace DataHandlingBPlusTrees
             {
                 return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode);
             }
-            return GetKeyCountNodeCountLevel(keyCountNode++, totalKeyCount);
+            return GetKeyCountNodeCountLevel(keyCountNode + 5, totalKeyCount);
         }
 
         private abstract class Node
@@ -234,6 +238,11 @@ namespace DataHandlingBPlusTrees
 
             public override void QuickFill<P>(Dictionary<K, P> elements)
             {
+                this.Pointers.Add(elements.First().Value as Node);
+                if (!elements.Remove(elements.Keys.First()))
+                {
+                    throw new Exception("--- Cannot remove first key from nodes dictionary");
+                }
                 foreach (KeyValuePair<K, P> element in elements)
                 {
                     this.Keys.Add(element.Key);
