@@ -57,6 +57,7 @@ namespace DataHandlingBPlusTrees
             // build next levels
             Dictionary<K, LeafNode> leafNodes = leafs.ToDictionary(e => e.GetFirstLeafKey(), e => e);
             SortedDictionary<K, LeafNode> sortedLeafNodes = new SortedDictionary<K, LeafNode>(leafNodes);
+            SortedDictionary<K, Node> sortedInputNodes = new SortedDictionary<K, Node>(sortedLeafNodes.ToDictionary(e => e.Key, e => (Node)e.Value));
             result.Root = BuildUpperLevel<LeafNode>(result, sortedLeafNodes, elements.Count).ElementAtOrDefault(0);
 
             return result;
@@ -73,7 +74,8 @@ namespace DataHandlingBPlusTrees
                 return result;
             }
 
-            List<InternalNode> builtNodes = BuildLevel<InternalNode, Node>(tree, nodes);
+            SortedDictionary<K, Node> castNodes = new SortedDictionary<K, Node>(nodes.ToDictionary(e => e.Key, e => (Node)e.Value));
+            List<InternalNode> builtNodes = BuildLevel<InternalNode, Node>(tree, castNodes);
             Dictionary<K, InternalNode> internalNodes = builtNodes.ToDictionary(e => e.GetFirstLeafKey(), e => e);
             SortedDictionary<K, InternalNode> sortedInternalNodes = new SortedDictionary<K, InternalNode>(internalNodes);
 

@@ -81,13 +81,13 @@ namespace DataHandlingBPlusTrees
             rel.File.WriteRecord(r3.ToString());
             DisplayRelation();
 
-            int degree = 6;
+            int degree = 512;
             BPlusTree<int> tree; //= new BPlusTree<int>(degree);
 
             SortedDictionary<int, RecordPointer<int>> ids = new SortedDictionary<int, RecordPointer<int>>();
 
             //foreach (int number in numbers)
-            for ( int i = 0; i < 23; i++)
+            for ( int i = 0; i < 10000; i++)
             {
                 ids.Add(i, new RecordPointer<int>(i, 0, 0));
             }
