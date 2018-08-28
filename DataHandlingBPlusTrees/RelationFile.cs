@@ -14,23 +14,6 @@ namespace DataHandlingBPlusTrees
         private string Name { get; set; }
         private int RecordSize { get; set; } = 64;
         private int Block { get; set; } = 4096;
-        //private Dictionary<string, string> header;
-        //public Dictionary<string, string> Header
-        //{
-        //    get
-        //    {
-        //        this.header = this.ReadHeader();
-        //        return this.header;
-        //    }
-        //    set
-        //    {
-        //        foreach (KeyValuePair<string, string> element in this.header)
-        //        {
-        //            this.header[element.Key] = value[element.Key];
-        //        }
-        //        this.WriteToFile(String.Join(Record.Separator, this.header.Values) + Record.Terminator, this.Block, 0, SeekOrigin.Begin);
-        //    }
-        //}
 
         public string FirstDeletedRecordLocation
         {

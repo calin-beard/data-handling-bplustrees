@@ -82,26 +82,22 @@ namespace DataHandlingBPlusTrees
             DisplayRelation();
 
             int degree = 6;
-            BPlusTree<int> tree = new BPlusTree<int>(degree);
+            BPlusTree<int> tree; //= new BPlusTree<int>(degree);
 
-            int[] numbers = new int[] { 17, 10, 12, 7, 6, 14, 5, 9, 16, 13, 2, 20, 11, 3, 4, 15, 1, 19, 18, 8 };
-            Dictionary<int, RecordPointer<int>> ids = new Dictionary<int, RecordPointer<int>>();
+            SortedDictionary<int, RecordPointer<int>> ids = new SortedDictionary<int, RecordPointer<int>>();
 
-            foreach (int number in numbers)
+            //foreach (int number in numbers)
+            for ( int i = 0; i < 23; i++)
             {
-                ids.Add(number, new RecordPointer<int>(number, 0, 0));
+                ids.Add(i, new RecordPointer<int>(i, 0, 0));
             }
 
-            tree.InsertMultiple(ids);
+            tree = BPlusTree<int>.BuildGroundUp(degree, ids);
 
-            RecordPointer<int> rp = tree.Find(7);
-            //Console.WriteLine("Found record pointer for 7 --- " + rp.Value);
-
-            List<RecordPointer<int>> recps = tree.FindRange(5, 7);
-            foreach(RecordPointer<int> el in recps)
-            {
-                Console.WriteLine($"Found record pointer for --- {el.Value}");
-            }
+            //tree.InsertMultiple(ids);
+            //tree.Delete(21);
+            //tree.Delete(22);
+            //tree.Delete(20);
 
             //Draw(tree.Root, Main);
 

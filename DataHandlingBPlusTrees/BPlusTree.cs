@@ -13,7 +13,7 @@ namespace DataHandlingBPlusTrees
 
         private static int Degree { get; set; }
 
-        public Node Root { get; set; }
+        private Node Root { get; set; }
 
         public BPlusTree() : this(DEGREE) { }
 
@@ -27,6 +27,94 @@ namespace DataHandlingBPlusTrees
             this.Root = new LeafNode(this);
         }
 
+        private InternalNode NewInternalNode()
+        {
+            return new InternalNode(this);
+        }
+
+        private LeafNode NewLeafNode()
+        {
+            return new LeafNode(this);
+        }
+
+        private N NewNode<N>() where N : Node, new()
+        {
+            N node = new N();
+            node.SetTree(this);
+            return node;
+        }
+
+        public static BPlusTree<K> BuildGroundUp(int degree, SortedDictionary<K, RecordPointer<K>> elements)
+        {
+            BPlusTree<K> result = new BPlusTree<K>(degree);
+            List<LeafNode> leafs = BuildLevel<LeafNode, RecordPointer<K>>(result, elements);
+
+            for (int i = 0; i < leafs.Count - 1; i++)
+            {
+                leafs.ElementAt(i).Next = leafs.ElementAt(i + 1);
+            }
+
+            // build next levels
+            Dictionary<K, LeafNode> leafNodes = leafs.ToDictionary(e => e.GetFirstLeafKey(), e => e);
+            SortedDictionary<K, LeafNode> sortedLeafNodes = new SortedDictionary<K, LeafNode>(leafNodes);
+            result.Root = BuildUpperLevel<LeafNode>(result, sortedLeafNodes, elements.Count).ElementAtOrDefault(0);
+
+            return result;
+        }
+
+        private static List<InternalNode> BuildUpperLevel<N>(BPlusTree<K> tree, SortedDictionary<K, N> nodes, int totalKeyCount) where N : Node
+        {
+            if (totalKeyCount < Degree)
+            {
+                List<InternalNode> result =  new List<InternalNode>(1);
+                InternalNode root = tree.NewInternalNode();
+                root.QuickFill(new Dictionary<K, N>(nodes));
+                result.Add(root);
+                return result;
+            }
+
+            List<InternalNode> builtNodes = BuildLevel<InternalNode, Node>(tree, nodes);
+            Dictionary<K, InternalNode> internalNodes = builtNodes.ToDictionary(e => e.GetFirstLeafKey(), e => e);
+            SortedDictionary<K, InternalNode> sortedInternalNodes = new SortedDictionary<K, InternalNode>(internalNodes);
+
+            List<InternalNode> nextNodes =  BuildUpperLevel<InternalNode>(tree, sortedInternalNodes, totalKeyCount);
+            foreach (InternalNode node in builtNodes)
+            {
+                foreach (InternalNode parent in nextNodes)
+                {
+                    if (parent.HasChild(node))
+                    {
+                        node.Parent = parent;
+                    }
+                }
+            }
+
+            return nextNodes;
+        }
+
+        private static List<N> BuildLevel<N, P>(BPlusTree<K> tree, SortedDictionary<K, P> elements)
+            where N : Node, new()
+            where P : class //should always be Node for N=InternalNode or RecordPointer<K> for N=LeafNode
+        {
+            List<N> results;
+            int totalKeyCount = elements.Count;
+            int tryKeyCountLeaf = (3 * totalKeyCount) / (2 * Degree);
+            Tuple<int, int> keyCountNodeCountLeafs = GetKeyCountNodeCountLevel(tryKeyCountLeaf, totalKeyCount);
+            int keyCountLeaf = keyCountNodeCountLeafs.Item1;
+            int nodeCountLeafLevel = keyCountNodeCountLeafs.Item2;
+
+            int counter = 0;
+            results = new List<N>(nodeCountLeafLevel);
+            foreach (Dictionary<K, P> shard in elements.GroupBy(x => counter++ / keyCountLeaf).Select(g => g.ToDictionary(h => h.Key, h => h.Value)))
+            {
+                N node = tree.NewNode<N>();
+                node.QuickFill(shard);
+                results.Add(node);
+            }
+
+            return results;
+        }
+
         public RecordPointer<K> Find(K value)
         {
             return Root.GetValue(value);
@@ -36,7 +124,7 @@ namespace DataHandlingBPlusTrees
         {
             return this.Root.GetRange(value1, value2);
         }
-        
+
         public void Insert(K value, RecordPointer<K> rp)
         {
             Root.InsertValue(value, rp);
@@ -54,11 +142,32 @@ namespace DataHandlingBPlusTrees
             Root.DeleteValue(value);
         }
 
-        public abstract class Node
+        public static Tuple<int, int> GetKeyCountNodeCountLevel(int keyCountNode, int totalKeyCount)
+        {
+            if (totalKeyCount % keyCountNode >= Node.MinKeys())
+            {
+                return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode);
+            }
+            return GetKeyCountNodeCountLevel(keyCountNode++, totalKeyCount);
+        }
+
+        private abstract class Node
         {
             public static BPlusTree<K> BPTree { get; set; }
             public Node Parent { get; set; }
             public List<K> Keys { get; set; }
+
+            public void SetTree(BPlusTree<K> tree)
+            {
+                Node.BPTree = tree;
+            }
+
+            public BPlusTree<K> GetTree()
+            {
+                return Node.BPTree;
+            }
+
+            public abstract void QuickFill<P>(Dictionary<K, P> elements) where P : class;
 
             public abstract RecordPointer<K> GetValue(K value);
 
@@ -85,7 +194,10 @@ namespace DataHandlingBPlusTrees
 
             public abstract Node Split();
 
-            protected abstract int MinKeys();
+            public static int MinKeys()
+            {
+                return (int)Math.Ceiling((decimal)(BPlusTree<K>.Degree - 1) / 2);
+            }
             protected abstract int MaxKeys();
 
             protected abstract int MinPointers();
@@ -99,22 +211,32 @@ namespace DataHandlingBPlusTrees
             {
                 return BPTree.Root == this;
             }
-
-            public override string ToString()
-            {
-                return (this.IsRoot() ? "Root " : "") + "Node with first key " + this.Keys.ElementAt(0).ToString(); ;
-            }
         }
 
         private class InternalNode : Node
         {
             public List<Node> Pointers { get; set; }
 
+            public InternalNode()
+            {
+                this.Keys = new List<K>(this.MaxKeys());
+                this.Pointers = new List<Node>(this.MaxPointers());
+            }
+
             public InternalNode(BPlusTree<K> _bptree)
             {
                 BPTree = _bptree;
                 this.Keys = new List<K>(this.MaxKeys());
                 this.Pointers = new List<Node>(this.MaxPointers());
+            }
+
+            public override void QuickFill<P>(Dictionary<K, P> elements)
+            {
+                foreach (KeyValuePair<K, P> element in elements)
+                {
+                    this.Keys.Add(element.Key);
+                    this.Pointers.Add(element.Value as Node);
+                }
             }
 
             public override RecordPointer<K> GetValue(K value)
@@ -161,7 +283,7 @@ namespace DataHandlingBPlusTrees
                         Node brother = left.Split();
                         this.InsertChild(brother.GetFirstLeafKey(), brother);
                     }
-                    if (BPTree.Root.IsUnderflow())
+                    if (BPTree.Root.Keys.Count == 0)
                     {
                         BPTree.Root = left;
                         BPTree.Root.Parent = null;
@@ -199,11 +321,6 @@ namespace DataHandlingBPlusTrees
                 return brother;
             }
 
-            protected override int MinKeys()
-            {
-                return this.IsRoot() ? 1 : (int)Math.Ceiling((decimal)BPlusTree<K>.Degree / 2) - 1;
-            }
-
             protected override int MaxKeys()
             {
                 return BPlusTree<K>.Degree - 1;
@@ -211,7 +328,7 @@ namespace DataHandlingBPlusTrees
 
             protected override int MinPointers()
             {
-                return this.IsRoot() ? 2 : (int)Math.Ceiling((decimal)BPlusTree<K>.Degree / 2);
+                return (int)Math.Ceiling((decimal)BPlusTree<K>.Degree / 2);
             }
 
             protected override int MaxPointers()
@@ -234,6 +351,12 @@ namespace DataHandlingBPlusTrees
                 int where = this.Keys.BinarySearch(value);
                 int childIndex = where >= 0 ? where + 1 : -where - 1;
                 return this.Pointers.ElementAt(childIndex);
+            }
+
+            public bool HasChild(Node n)
+            {
+                int where = this.Pointers.BinarySearch(n);
+                return where >= 0;
             }
 
             protected void InsertChild(K value, Node child)
@@ -297,13 +420,28 @@ namespace DataHandlingBPlusTrees
         {
             List<RecordPointer<K>> RecordPointers { get; set; }
 
-            LeafNode Next { get; set; }
+            public LeafNode Next { get; set; }
+
+            public LeafNode()
+            {
+                this.Keys = new List<K>(this.MaxKeys());
+                this.RecordPointers = new List<RecordPointer<K>>(this.MaxPointers());
+            }
 
             public LeafNode(BPlusTree<K> _bptree)
             {
                 BPTree = _bptree;
                 this.Keys = new List<K>(this.MaxKeys());
                 this.RecordPointers = new List<RecordPointer<K>>(this.MaxPointers());
+            }
+
+            public override void QuickFill<P>(Dictionary<K, P> elements)
+            {
+                foreach (KeyValuePair<K, P> element in elements)
+                {
+                    this.Keys.Add(element.Key);
+                    this.RecordPointers.Add(element.Value as RecordPointer<K>);
+                }
             }
 
             public override RecordPointer<K> GetValue(K value)
@@ -330,7 +468,7 @@ namespace DataHandlingBPlusTrees
                         RecordPointer<K> rp = rpEnumerator.Current;
                         int c1 = value.CompareTo(value1);
                         int c2 = value.CompareTo(value2);
-                        if (c1 >= 0 && c2 <=0)
+                        if (c1 >= 0 && c2 <= 0)
                         {
                             results.Add(rp);
                         }
@@ -405,11 +543,6 @@ namespace DataHandlingBPlusTrees
                 return brother;
             }
 
-            protected override int MinKeys()
-            {
-                return this.IsRoot() ? 1 : (int)Math.Ceiling((decimal)(BPlusTree<K>.Degree - 1) / 2);
-            }
-
             protected override int MaxKeys()
             {
                 return BPlusTree<K>.Degree - 1;
@@ -417,7 +550,7 @@ namespace DataHandlingBPlusTrees
 
             protected override int MinPointers()
             {
-                return this.IsRoot() ? 2 : (int)Math.Ceiling((decimal)(BPlusTree<K>.Degree - 1) / 2);
+                return (int)Math.Ceiling((decimal)(BPlusTree<K>.Degree - 1) / 2);
             }
 
             protected override int MaxPointers()
