@@ -194,6 +194,31 @@ namespace DataHandlingBPlusTrees
                 BPTree.Root = newRoot;
             }
 
+            public int BinarySeachDuplicates<T>(List<T> list, T x) where T : IComparable
+            {
+                int low = 0;
+                int high = list.Count - 1;
+
+                while (low <= high)
+                {
+                    int mid = (low + high) / 2;
+
+                    if (x.CompareTo(list.ElementAt(mid)) < 0)
+                    {
+                        high = mid - 1;
+                    }
+                    else if (x.CompareTo(list.ElementAt(mid)) > 0)
+                    {
+                        low = mid + 1;
+                    }
+                    else
+                    {
+                        high = mid;
+                    }
+                }
+                return list.ElementAt(low).CompareTo(x) == 0 ? low : high;
+            }
+
             public abstract K GetFirstLeafKey();
 
             public abstract void Merge(Node brother);
