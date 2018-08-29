@@ -157,7 +157,7 @@ namespace DataHandlingBPlusTrees
             return GetKeyCountNodeCountLevel(keyCountNode + 5, totalKeyCount);
         }
 
-        private abstract class Node
+        private abstract class Node : IComparable
         {
             public static BPlusTree<K> BPTree { get; set; }
             public Node Parent { get; set; }
@@ -194,10 +194,11 @@ namespace DataHandlingBPlusTrees
                 BPTree.Root = newRoot;
             }
 
-            public int BinarySeachDuplicates<T>(List<T> list, T x) where T : IComparable
+            public static int BinarySeachFirstIndex<T>(List<T> list, T x) where T : IComparable
             {
                 int low = 0;
                 int high = list.Count - 1;
+                int index = -1;
 
                 while (low <= high)
                 {
@@ -213,10 +214,11 @@ namespace DataHandlingBPlusTrees
                     }
                     else
                     {
+                        index = mid;
                         high = mid;
                     }
                 }
-                return list.ElementAt(low).CompareTo(x) == 0 ? low : high;
+                return index >= 0 ? index : -low;
             }
 
             public abstract K GetFirstLeafKey();
@@ -241,6 +243,12 @@ namespace DataHandlingBPlusTrees
             public bool IsRoot()
             {
                 return BPTree.Root == this;
+            }
+
+            int IComparable.CompareTo(object obj)
+            {
+                Node n = (Node)obj;
+                return this.Keys[0].CompareTo(n.Keys[0]);
             }
         }
 
