@@ -69,10 +69,14 @@
     </ApplicationDefinition>
     <Compile Include="ArrayHandler.cs" />
     <Compile Include="Attributte.cs" />
+    <Compile Include="Block.cs" />
+    <Compile Include="BlockCache.cs" />
+    <Compile Include="Employee.cs" />
     <Compile Include="Relation.cs" />
     <Compile Include="RelationFile.cs" />
     <Compile Include="RecordPointer.cs" />
     <Compile Include="Record.cs" />
+    <Compile Include="SerializableRecord.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

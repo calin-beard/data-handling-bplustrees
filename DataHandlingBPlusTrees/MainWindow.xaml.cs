@@ -81,6 +81,29 @@ namespace DataHandlingBPlusTrees
             rel.File.WriteRecord(r3.ToString());
             DisplayRelation();
 
+            List<Employee> employees = new List<Employee>();
+            for (int i=0; i < 1000; i++)
+            {
+                employees.Add(new Employee(i, 'M', 19000, "calin", "barburescu"));
+            }
+            employees.Add(new Employee(2, 'F', 19000, "cristina", "gavrila"));
+            employees.Add(new Employee(3, 'F', 19000, "andreia", "preda"));
+
+            int block = 0;
+            int offset = 0;
+            foreach (Employee e in employees)
+            {
+                e.WriteRecord(e, e.Cache.GetBlock(block), offset);
+                Console.WriteLine("---Employee size is " + e.RecordSize());
+                Console.WriteLine("+++++++++" + e.ReadRecord(e.Cache.GetBlock(block), offset));
+                offset += e.RecordSize();
+                if (4096 - offset < offset)
+                {
+                    offset = 0;
+                    block++;
+                }
+            }
+
             int degree = 512;
             BPlusTree<int> tree; //= new BPlusTree<int>(degree);
 
@@ -111,6 +134,7 @@ namespace DataHandlingBPlusTrees
             //    sampleCTreeView.Nodes[0].Nodes.Add(new CTreeNode("node " + i, new MyControl()));
             //}
             //sampleCTreeView.EndUpdate();
+
         }
 
         //private void Draw(BPlusTree<int>.Node node, StackPanel sp)
