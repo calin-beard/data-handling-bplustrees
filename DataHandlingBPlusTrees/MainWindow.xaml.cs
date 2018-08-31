@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -52,26 +53,11 @@ namespace DataHandlingBPlusTrees
         {
             InitializeComponent();
 
-            rel = new Relation(this.TestRelationName, new List<Attributte> {
-                new Attributte("id", true, true, true),
-                new Attributte("name", false, true, false),
-                new Attributte("firstname", false, true, false)
-            });
-            Record r1 = new Record(rel.AttributeNames, "1,Barburescu,Calin;");
-            Record r2 = new Record(rel.AttributeNames, "2,Gavrila,Cristina;");
-            Record r3 = new Record(rel.AttributeNames, "3,Preda,Andreia;");
-            rel.File.WriteRecord(r1.ToString());
-            rel.File.WriteRecord(r2.ToString());
-            rel.File.WriteRecord(r3.ToString());
-            rel.File.DeleteRecord(4096 + 64 + 64);
-            rel.File.DeleteRecord(4096);
-            rel.File.DeleteRecord(4096 + 64);
-            rel.File.WriteRecord(r1.ToString());
-            rel.File.WriteRecord(r2.ToString());
-            rel.File.WriteRecord(r3.ToString());
-            //DisplayRelation();
-
             int recordCount = 10000;
+            int degree = 102;
+            BPlusTree<int> tree;
+            SortedDictionary<int, RecordPointer> ids = new SortedDictionary<int, RecordPointer>();
+
             if (new FileInfo(Employee.PathName()).Length == 0)
             {
                 Database.CreateMock(recordCount);
@@ -83,6 +69,7 @@ namespace DataHandlingBPlusTrees
             for (int i = 0; i < recordCount; i++)
             {
                 Console.WriteLine("+++++++++" + e.GetRecord(block, offset));
+                ids.Add(e.GetRecord(block, offset).Id, new RecordPointer(block, offset));
                 offset += e.RecordSize();
                 if (Block.Size() - offset < e.RecordSize())
                 {
@@ -90,6 +77,12 @@ namespace DataHandlingBPlusTrees
                     block++;
                 }
             }
+
+            tree = BPlusTree<int>.BuildGroundUp(degree, ids);
+            ViewNode rootView = tree.Display();
+            Tree.Items.Add(rootView);
+
+            //DisplayRelation();
 
             //List<Employee> employees = new List<Employee>();
             //for (int i = 0; i < 1000; i++)
@@ -132,18 +125,7 @@ namespace DataHandlingBPlusTrees
             //ee.DeleteRecord(b, o);
             //Console.WriteLine("4+++++++++" + ee.GetRecord(b, o));
 
-            int degree = 512;
-            BPlusTree<int> tree; //= new BPlusTree<int>(degree);
 
-            SortedDictionary<int, RecordPointer<int>> ids = new SortedDictionary<int, RecordPointer<int>>();
-
-            //foreach (int number in numbers)
-            for ( int i = 0; i < 1000000; i++)
-            {
-                ids.Add(i, new RecordPointer<int>(i, 0, 0));
-            }
-
-            tree = BPlusTree<int>.BuildGroundUp(degree, ids);
 
             //tree.InsertMultiple(ids);
             //tree.Delete(21);

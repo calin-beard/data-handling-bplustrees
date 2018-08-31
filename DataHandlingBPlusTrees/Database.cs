@@ -25,10 +25,21 @@ namespace DataHandlingBPlusTrees
             Random rln = new Random();
             for (int i = 1; i <= recordCount; i++)
             {
+                int fni = rfn.Next(1, firstNames.Length - 1);
+                int lni = rln.Next(1, lastNames.Length - 1);
+                char genre = '\0';
+                if (fni % 2 == 0)
+                {
+                    genre = 'M';
+                }
+                else
+                {
+                    genre = 'F';
+                }
                 int salary = rs.Next(30, 60) * 100;
-                string firstName = firstNames[rfn.Next(1, firstNames.Length - 1)];
-                string lastName = lastNames[rln.Next(1, lastNames.Length - 1)];
-                Employee e = new Employee(i, 'M', salary, firstName, lastName);
+                string firstName = firstNames[fni];
+                string lastName = lastNames[lni];
+                Employee e = new Employee(i, genre, salary, firstName, lastName);
                 e.SetRecord(e, block, offset);
                 offset += e.RecordSize();
                 if (Block.Size() - offset < e.RecordSize())

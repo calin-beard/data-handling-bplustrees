@@ -78,6 +78,7 @@
     <Compile Include="RecordPointer.cs" />
     <Compile Include="Record.cs" />
     <Compile Include="SerializableRecord.cs" />
+    <Compile Include="ViewNode.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

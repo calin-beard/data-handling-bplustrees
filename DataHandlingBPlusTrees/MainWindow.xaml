@@ -5,6 +5,7 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DataHandlingBPlusTrees" 
         mc:Ignorable="d"
         Title="Database Manager" Height="800" Width="800"
         ResizeMode="CanResize"
@@ -24,8 +25,8 @@
     </Controls:MetroWindow.Resources>
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Name="Students" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="0" Width="Auto" Margin="20">
             <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="Students" FontSize="20" FontWeight="Bold" Margin="10"/>
@@ -68,7 +69,23 @@
             </DataGrid>
         </StackPanel>
         <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1" Height="Auto" Width="1000" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
-            <StackPanel Name="Main" Height="Auto"/>
+            <!--<StackPanel Name="Main" Height="Auto"/>-->
+            <TreeView Name="Tree">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate DataType="{x:Type local:ViewNode}" ItemsSource="{Binding Children}">
+                        <StackPanel>
+                            <TextBlock Margin="10" Text="{Binding Title}"/>
+                            <Controls:DropDownButton
+                                HorizontalAlignment="Left"
+                                Width="120"
+                                Content="Keys"
+                                Margin="10"
+                                ItemsSource="{Binding Keys}">         
+                            </Controls:DropDownButton>
+                        </StackPanel>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
         </ScrollViewer>
         <!--<ListView HorizontalAlignment="Left" Height="100" Margin="913,275,-221,0" VerticalAlignment="Top" Width="100">
             <ListView.View>

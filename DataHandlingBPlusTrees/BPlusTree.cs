@@ -44,10 +44,10 @@ namespace DataHandlingBPlusTrees
             return node;
         }
 
-        public static BPlusTree<K> BuildGroundUp(int degree, SortedDictionary<K, RecordPointer<K>> elements)
+        public static BPlusTree<K> BuildGroundUp(int degree, SortedDictionary<K, RecordPointer> elements)
         {
             BPlusTree<K> result = new BPlusTree<K>(degree);
-            List<LeafNode> leafs = BuildLevel<LeafNode, RecordPointer<K>>(result, elements);
+            List<LeafNode> leafs = BuildLevel<LeafNode, RecordPointer>(result, elements);
 
             for (int i = 0; i < leafs.Count - 1; i++)
             {
@@ -96,11 +96,19 @@ namespace DataHandlingBPlusTrees
 
         private static List<N> BuildLevel<N, P>(BPlusTree<K> tree, SortedDictionary<K, P> elements)
             where N : Node, new()
-            where P : class //should always be Node for N=InternalNode or RecordPointer<K> for N=LeafNode
+            where P : class //should always be Node for N=InternalNode or RecordPointer for N=LeafNode
         {
             List<N> results;
             int totalKeyCount = elements.Count;
-            int tryKeyCountLeaf = (2 * Degree) / 3;
+            int tryKeyCountLeaf = 0;
+            if (typeof(N) == typeof(LeafNode))
+            {
+                tryKeyCountLeaf = Degree - 1;
+            }
+            else
+            {
+                tryKeyCountLeaf = (2 * Degree) / 3;
+            }
             Tuple<int, int> keyCountNodeCountLeafs = GetKeyCountNodeCountLevel(tryKeyCountLeaf, totalKeyCount);
             int keyCountLeaf = keyCountNodeCountLeafs.Item1;
             int nodeCountLeafLevel = keyCountNodeCountLeafs.Item2;
@@ -121,23 +129,23 @@ namespace DataHandlingBPlusTrees
             return results;
         }
 
-        public RecordPointer<K> Find(K value)
+        public RecordPointer Find(K value)
         {
             return Root.GetValue(value);
         }
 
-        public List<RecordPointer<K>> FindRange(K value1, K value2)
+        public List<RecordPointer> FindRange(K value1, K value2)
         {
             return this.Root.GetRange(value1, value2);
         }
 
-        public void Insert(K value, RecordPointer<K> rp)
+        public void Insert(K value, RecordPointer rp)
         {
             Root.InsertValue(value, rp);
         }
-        public void InsertMultiple(Dictionary<K, RecordPointer<K>> elements)
+        public void InsertMultiple(Dictionary<K, RecordPointer> elements)
         {
-            foreach (KeyValuePair<K, RecordPointer<K>> element in elements)
+            foreach (KeyValuePair<K, RecordPointer> element in elements)
             {
                 this.Insert(element.Key, element.Value);
             }
@@ -154,7 +162,12 @@ namespace DataHandlingBPlusTrees
             {
                 return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode);
             }
-            return GetKeyCountNodeCountLevel(keyCountNode + 5, totalKeyCount);
+            return GetKeyCountNodeCountLevel(keyCountNode - 2, totalKeyCount);
+        }
+
+        public ViewNode Display()
+        {
+            return this.Root.CreateViewNode();
         }
 
         private abstract class Node : IComparable
@@ -175,11 +188,11 @@ namespace DataHandlingBPlusTrees
 
             public abstract void QuickFill<P>(Dictionary<K, P> elements) where P : class;
 
-            public abstract RecordPointer<K> GetValue(K value);
+            public abstract RecordPointer GetValue(K value);
 
-            public abstract List<RecordPointer<K>> GetRange(K value1, K value2);
+            public abstract List<RecordPointer> GetRange(K value1, K value2);
 
-            public abstract void InsertValue(K value, RecordPointer<K> rp);
+            public abstract void InsertValue(K value, RecordPointer rp);
 
             public abstract void DeleteValue(K value);
 
@@ -250,6 +263,8 @@ namespace DataHandlingBPlusTrees
                 Node n = (Node)obj;
                 return this.Keys[0].CompareTo(n.Keys[0]);
             }
+
+            public abstract ViewNode CreateViewNode();
         }
 
         private class InternalNode : Node
@@ -283,17 +298,17 @@ namespace DataHandlingBPlusTrees
                 }
             }
 
-            public override RecordPointer<K> GetValue(K value)
+            public override RecordPointer GetValue(K value)
             {
                 return this.GetChild(value).GetValue(value);
             }
 
-            public override List<RecordPointer<K>> GetRange(K value1, K value2)
+            public override List<RecordPointer> GetRange(K value1, K value2)
             {
                 return this.GetChild(value1).GetRange(value1, value2);
             }
 
-            public override void InsertValue(K value, RecordPointer<K> rp)
+            public override void InsertValue(K value, RecordPointer rp)
             {
                 Node child = this.GetChild(value);
                 child.InsertValue(value, rp);
@@ -458,25 +473,39 @@ namespace DataHandlingBPlusTrees
             {
                 return (this.IsRoot() ? "Root " : "") + "InternalNode with first key " + this.Keys.ElementAt(0).ToString(); ;
             }
+
+            public override ViewNode CreateViewNode()
+            {
+                ViewNode vn = new ViewNode() { Title = this.ToString() };
+                foreach(K key in this.Keys)
+                {
+                    vn.Keys.Add(key.ToString());
+                }
+                foreach (Node child in this.Pointers)
+                {
+                    vn.Children.Add(child.CreateViewNode());
+                }
+                return vn;
+            }
         }
 
         private class LeafNode : Node
         {
-            List<RecordPointer<K>> RecordPointers { get; set; }
+            List<RecordPointer> RecordPointers { get; set; }
 
             public LeafNode Next { get; set; }
 
             public LeafNode()
             {
                 this.Keys = new List<K>(this.MaxKeys());
-                this.RecordPointers = new List<RecordPointer<K>>(this.MaxPointers());
+                this.RecordPointers = new List<RecordPointer>(this.MaxPointers());
             }
 
             public LeafNode(BPlusTree<K> _bptree)
             {
                 BPTree = _bptree;
                 this.Keys = new List<K>(this.MaxKeys());
-                this.RecordPointers = new List<RecordPointer<K>>(this.MaxPointers());
+                this.RecordPointers = new List<RecordPointer>(this.MaxPointers());
             }
 
             public override void QuickFill<P>(Dictionary<K, P> elements)
@@ -484,11 +513,11 @@ namespace DataHandlingBPlusTrees
                 foreach (KeyValuePair<K, P> element in elements)
                 {
                     this.Keys.Add(element.Key);
-                    this.RecordPointers.Add(element.Value as RecordPointer<K>);
+                    this.RecordPointers.Add(element.Value as RecordPointer);
                 }
             }
 
-            public override RecordPointer<K> GetValue(K value)
+            public override RecordPointer GetValue(K value)
             {
                 int where = this.Keys.BinarySearch(value);
                 if (where >= 0)
@@ -498,18 +527,18 @@ namespace DataHandlingBPlusTrees
                 return null;
             }
 
-            public override List<RecordPointer<K>> GetRange(K value1, K value2)
+            public override List<RecordPointer> GetRange(K value1, K value2)
             {
-                List<RecordPointer<K>> results = new List<RecordPointer<K>>();
+                List<RecordPointer> results = new List<RecordPointer>();
                 LeafNode node = this;
                 while (node != null)
                 {
                     IEnumerator<K> valueEnumerator = node.Keys.GetEnumerator();
-                    IEnumerator<RecordPointer<K>> rpEnumerator = node.RecordPointers.GetEnumerator();
+                    IEnumerator<RecordPointer> rpEnumerator = node.RecordPointers.GetEnumerator();
                     while (valueEnumerator.MoveNext() && rpEnumerator.MoveNext())
                     {
                         K value = valueEnumerator.Current;
-                        RecordPointer<K> rp = rpEnumerator.Current;
+                        RecordPointer rp = rpEnumerator.Current;
                         int c1 = value.CompareTo(value1);
                         int c2 = value.CompareTo(value2);
                         if (c1 >= 0 && c2 <= 0)
@@ -526,7 +555,7 @@ namespace DataHandlingBPlusTrees
                 return results;
             }
 
-            public override void InsertValue(K value, RecordPointer<K> rp)
+            public override void InsertValue(K value, RecordPointer rp)
             {
                 int where = this.Keys.BinarySearch(value);
                 int valueIndex = where >= 0 ? where : -where - 1;
@@ -615,6 +644,16 @@ namespace DataHandlingBPlusTrees
             public override string ToString()
             {
                 return (this.IsRoot() ? "Root " : "") + "LeafNode with first key " + this.Keys.ElementAt(0).ToString(); ;
+            }
+
+            public override ViewNode CreateViewNode()
+            {
+                ViewNode vn = new ViewNode() { Title = this.ToString() };
+                foreach (K key in this.Keys)
+                {
+                    vn.Keys.Add(key.ToString());
+                }
+                return vn;
             }
         }
     }
