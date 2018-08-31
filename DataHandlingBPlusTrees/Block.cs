@@ -14,5 +14,10 @@ namespace DataHandlingBPlusTrees
         {
             this.Bytes = new byte[4096];
         }
+
+        public static int Size()
+        {
+            return 4096;
+        }
     }
 }

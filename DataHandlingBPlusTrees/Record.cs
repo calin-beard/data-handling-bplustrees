@@ -9,7 +9,6 @@ namespace DataHandlingBPlusTrees
     class Record
 
     {
-        //public List<string> Attributes { get; set; }
         public Dictionary<string, string> Attributes { get; set; }
         public static string Separator { get; set; } = ",";
         public static string Terminator { get; set; } = ";";

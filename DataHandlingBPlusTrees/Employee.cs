@@ -15,17 +15,20 @@ namespace DataHandlingBPlusTrees
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
-        public static Employee empty { get; set; } = new Employee();
+        public static BlockCache Cache { get; set; }
+        public static Employee Empty { get; set; } = new Employee();
         static Employee()
         {
-            empty.Id = empty.Salary = -1;
-            empty.Gender = 'M';
-            empty.FirstName = empty.LastName = "";
+            Cache = new BlockCache(PathName());
+            Empty.Id = -1;
+            Empty.Salary = 0;
+            Empty.Gender = 'M';
+            Empty.FirstName = Empty.LastName = "";
         }
 
         public override int RecordSize()
         {
-            return sizeof(int) + sizeof(char) + sizeof(int) + 2 * 15; 
+            return sizeof(int) + sizeof(char) + sizeof(int) + 2 * 15;
         }
 
         public Employee() { }
@@ -39,11 +42,11 @@ namespace DataHandlingBPlusTrees
             this.LastName = lastname;
         }
 
-        public override Employee ReadRecord(Block b, int offset)
+        protected override Employee ReadRecord(Block b, int offset)
         {
-            int offs = RecordSize() * offset;
+            //int offs = RecordSize() * offset;
             Employee emp = new Employee();
-            using (MemoryStream ms = new MemoryStream(b.Bytes, offs, RecordSize()))
+            using (MemoryStream ms = new MemoryStream(b.Bytes, offset, RecordSize()))
             {
                 using (BinaryReader br = new BinaryReader(ms))
                 {
@@ -57,10 +60,10 @@ namespace DataHandlingBPlusTrees
             return emp;
         }
 
-        public override void WriteRecord(Employee record, Block b, int offset)
+        protected override void WriteRecord(Employee record, Block b, int offset)
         {
-            int offs = RecordSize() * offset;
-            using (MemoryStream ms = new MemoryStream(b.Bytes, offs, RecordSize()))
+            //int offs = RecordSize() * offset;
+            using (MemoryStream ms = new MemoryStream(b.Bytes, offset, RecordSize()))
             {
                 using (BinaryWriter bw = new BinaryWriter(ms))
                 {
@@ -73,9 +76,44 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        public override string PathName()
+        public override Employee GetEmptyRecord()
         {
-            return Path.Combine(Directory.GetCurrentDirectory(), "testing");
+            return Employee.Empty;
+        }
+
+        public override Block CreateEmptyBlock()
+        {
+            Block b = new Block();
+            using (MemoryStream ms = new MemoryStream(b.Bytes, 0, this.RecordSize()))
+            {
+                using (BinaryWriter bw = new BinaryWriter(ms))
+                {
+                    for (int i = 0; i < Block.Size() / this.RecordSize(); i++)
+                    {
+                        bw.Write(Employee.Empty.Id);
+                        bw.Write(Employee.Empty.Gender);
+                        bw.Write(Employee.Empty.Salary);
+                        bw.Write(Employee.Empty.FirstName);
+                        bw.Write(Employee.Empty.LastName);
+                    }
+                }
+            }
+            return b;
+        }
+
+        public override BlockCache GetCache()
+        {
+            return Employee.Cache;
+        }
+
+        public static string PathName()
+        {
+            return Path.Combine(Directory.GetCurrentDirectory(), "database");
+        }
+
+        public override string GetPathName()
+        {
+            return Employee.PathName();
         }
 
         public override string ToString()

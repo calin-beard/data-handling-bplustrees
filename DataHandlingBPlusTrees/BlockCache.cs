@@ -9,6 +9,7 @@ namespace DataHandlingBPlusTrees
 {
     public class BlockCache
     {
+        public int FileSize { get; set; } = 0;
         private const short SIZE = 4;
         private int[] idx;
         private Block[] blocks;
@@ -18,19 +19,35 @@ namespace DataHandlingBPlusTrees
         public BlockCache(string _pathName)
         {
             this.pathName = _pathName;
+            if (File.Exists(Employee.PathName()))
+            {
+                this.FileSize = (int)(new FileInfo(Employee.PathName())).Length;
+            }
+            else
+            {
+                using (FileStream f = File.Create(this.pathName))
+                {
+                    this.FileSize = (int)f.Length / Block.Size();
+                    Console.WriteLine("Initial file size is " + this.FileSize);
+                }
+            }
             oldest = 0;
             idx = new int[SIZE];
-            for (int i = 0; i < SIZE; i++) idx[i] = -1;
             blocks = new Block[SIZE];
-            for (int i = 0; i < SIZE; i++) blocks[i] = new Block();
+            for (int i = 0; i < SIZE; i++)
+            {
+                blocks[i] = new Block();
+                idx[i] = -1;
+            }
         }
 
-        public Block GetBlock(int number)
+        public Block GetBlock(int block)
         {
-            int where = Array.BinarySearch(idx, number);
-            if (where >= 0) return blocks[where];
+            for (int i = 0; i < SIZE; i++)
+                if (idx[i] == block) return blocks[i];
             this.FlushLastBlock();
-            return this.ReadBlock(number);
+            Console.WriteLine("Reading block " + block);
+            return this.ReadBlock(block);
         }
 
         private void FlushLastBlock()
@@ -40,7 +57,9 @@ namespace DataHandlingBPlusTrees
             {
                 using (FileStream fs = new FileStream(pathName, FileMode.Open))
                 {
-                    fs.Write(blocks[oldest].Bytes, idx[oldest] * 4096, 4096);
+                    fs.Seek(idx[oldest] * 4096, SeekOrigin.Begin);
+                    Console.WriteLine("Flushing block " + idx[oldest]);
+                    fs.Write(blocks[oldest].Bytes, 0, blocks[oldest].Bytes.Length);
                     fs.Flush();
                 }
             }
@@ -51,16 +70,27 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        private Block ReadBlock(int number)
+        public void FlushAllCachedBlocks()
+        {
+            for (int i = 0; i < SIZE; i++)
+            {
+                this.FlushLastBlock();
+                idx[oldest] = -1;
+                oldest = (oldest + 1) % SIZE;
+            }
+        }
+
+        private Block ReadBlock(int block)
         {
             Block ob = blocks[oldest];
             try
             {
                 using (FileStream fs = new FileStream(pathName, FileMode.OpenOrCreate))
                 {
-                    fs.Read(ob.Bytes, number * 4096, 4096);
-                    idx[oldest] = number;
-                    number++;
+                    fs.Seek(block * Block.Size(), SeekOrigin.Begin);
+                    fs.Read(ob.Bytes, 0, Block.Size());
+                    idx[oldest] = block;
+                    oldest = (oldest + 1) % SIZE;
                 }
             }
             catch (IOException e)

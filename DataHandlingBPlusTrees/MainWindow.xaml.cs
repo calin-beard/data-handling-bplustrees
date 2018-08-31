@@ -25,17 +25,8 @@ namespace DataHandlingBPlusTrees
     public partial class MainWindow : MetroWindow
     {
         public string TestRelationName { get; set; } = "Students";
-        public int Block { get; set; } = 4096;
         Relation rel { get; set; }
         private List<Tuple<Point, Point>> LinkedListArrowCoords { get; set; } = new List<Tuple<Point, Point>>();
-
-        private void Setup()
-        {
-            if (File.Exists(this.TestRelationName))
-            {
-                File.Delete(this.TestRelationName);
-            }
-        }
 
         private void DisplayRelation(string[] columns = null)
         {
@@ -60,7 +51,6 @@ namespace DataHandlingBPlusTrees
         public MainWindow()
         {
             InitializeComponent();
-            this.Setup();
 
             rel = new Relation(this.TestRelationName, new List<Attributte> {
                 new Attributte("id", true, true, true),
@@ -79,30 +69,68 @@ namespace DataHandlingBPlusTrees
             rel.File.WriteRecord(r1.ToString());
             rel.File.WriteRecord(r2.ToString());
             rel.File.WriteRecord(r3.ToString());
-            DisplayRelation();
+            //DisplayRelation();
 
-            List<Employee> employees = new List<Employee>();
-            for (int i=0; i < 1000; i++)
+            int recordCount = 10000;
+            if (new FileInfo(Employee.PathName()).Length == 0)
             {
-                employees.Add(new Employee(i, 'M', 19000, "calin", "barburescu"));
+                Database.CreateMock(recordCount);
             }
-            employees.Add(new Employee(2, 'F', 19000, "cristina", "gavrila"));
-            employees.Add(new Employee(3, 'F', 19000, "andreia", "preda"));
 
+            Employee e = Employee.Empty;
             int block = 0;
             int offset = 0;
-            foreach (Employee e in employees)
+            for (int i = 0; i < recordCount; i++)
             {
-                e.WriteRecord(e, e.Cache.GetBlock(block), offset);
-                Console.WriteLine("---Employee size is " + e.RecordSize());
-                Console.WriteLine("+++++++++" + e.ReadRecord(e.Cache.GetBlock(block), offset));
+                Console.WriteLine("+++++++++" + e.GetRecord(block, offset));
                 offset += e.RecordSize();
-                if (4096 - offset < offset)
+                if (Block.Size() - offset < e.RecordSize())
                 {
                     offset = 0;
                     block++;
                 }
             }
+
+            //List<Employee> employees = new List<Employee>();
+            //for (int i = 0; i < 1000; i++)
+            //{
+            //    employees.Add(new Employee(i, 'M', 19000, "calin", "barburescu"));
+            //}
+            //employees.Add(new Employee(2, 'F', 19000, "cristina", "gavrila"));
+            //employees.Add(new Employee(3, 'F', 19000, "andreia", "preda"));
+
+            //int b = 0, o = 0;
+            //Employee ee = Employee.Empty;
+
+            //int block = 0;
+            //int offset = 0;
+            //foreach (Employee e in employees)
+            //{
+            //    e.SetRecord(e, block, offset);
+            //    Console.WriteLine("---Employee size is " + e.RecordSize());
+            //    Console.WriteLine("+++++++++" + e.GetRecord(block, offset));
+            //    if (e.FirstName.CompareTo("cristina") == 0)
+            //    {
+            //        b = block;
+            //        o = offset;
+            //        ee = e;
+            //    }
+            //    offset += e.RecordSize();
+            //    if (Block.Size() - offset < e.RecordSize())
+            //    {
+            //        offset = 0;
+            //        block++;
+            //    }
+            //}
+
+            //Employee eeempty = Employee.Empty;
+            //Console.WriteLine("1+++++++++" + eeempty.GetRecord(block, offset));
+            //eeempty.SetRecord(eeempty, block, offset);
+            //Console.WriteLine("2+++++++++" + eeempty.GetRecord(block, offset));
+
+            //Console.WriteLine("3+++++++++" + ee.GetRecord(b, o));
+            //ee.DeleteRecord(b, o);
+            //Console.WriteLine("4+++++++++" + ee.GetRecord(b, o));
 
             int degree = 512;
             BPlusTree<int> tree; //= new BPlusTree<int>(degree);
@@ -134,7 +162,18 @@ namespace DataHandlingBPlusTrees
             //    sampleCTreeView.Nodes[0].Nodes.Add(new CTreeNode("node " + i, new MyControl()));
             //}
             //sampleCTreeView.EndUpdate();
+            this.Loaded += MainWindow_Loaded;
+        }
 
+        void MainWindow_Loaded(object sender, EventArgs e)
+        {
+            Button close = this.FindChild<Button>("PART_Close");
+            close.Click += Close_Click;
+        }
+
+        void Close_Click(object sender, RoutedEventArgs e)
+        {
+            Employee.Cache.FlushAllCachedBlocks();
         }
 
         //private void Draw(BPlusTree<int>.Node node, StackPanel sp)
