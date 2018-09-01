@@ -7,7 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DataHandlingBPlusTrees" 
         mc:Ignorable="d"
-        Title="Database Manager" Height="800" Width="800"
+        Title="Database Manager" Height="800" Width="1100"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen">
     <Controls:MetroWindow.Resources>
@@ -24,15 +24,17 @@
         </ResourceDictionary>
     </Controls:MetroWindow.Resources>
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        <StackPanel Name="Students" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Row="0" Width="Auto" Margin="20">
-            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="Students" FontSize="20" FontWeight="Bold" Margin="10"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <StackPanel Name="Employees" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Column="0" Width="Auto" Margin="20">
+            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="Employees" FontSize="20" FontWeight="Bold" Margin="10"/>
             <!--<StackPanel Orientation="Horizontal" Name="RecordForm" HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Margin="20">-->
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
@@ -44,23 +46,53 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="30"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Content="INSERT INTO Students" Background="LightGray" Margin="10,0"/>
+                <Label Grid.Row="0" Grid.Column="0" Content="INSERT INTO Employees" Background="LightGray" Margin="10,0"/>
                 <Label Grid.Row="0" Grid.Column="1" Content="Id" HorizontalContentAlignment="Center" Margin="10,0"/>
-                <Label Grid.Row="0" Grid.Column="2" Content="Name" HorizontalContentAlignment="Center" Margin="10,0"/>
-                <Label Grid.Row="0" Grid.Column="3" Content="First Name" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="0" Grid.Column="2" Content="Gender" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="0" Grid.Column="3" Content="Name" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="0" Grid.Column="4" Content="First Name" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="0" Grid.Column="5" Content="Salary" HorizontalContentAlignment="Center" Margin="10,0"/>
                 <Label Grid.Row="1" Grid.Column="0" Content="VALUES" Background="LightGray" HorizontalContentAlignment="Center" Margin="10,0"/>
-                <TextBox Grid.Row="1" Grid.Column="1" Name="Id" Width="70" Margin="10, 0"/>
-                <TextBox Grid.Row="1" Grid.Column="2" Name="Name" Width="70" Margin="10, 0"/>
-                <TextBox Grid.Row="1" Grid.Column="3" Name="FirstName" Width="70" Margin="10, 0"/>
-                <Button Grid.Row="1" Grid.Column="4" Name="InsertIntoStudents" Content="Go!" Width="Auto" Margin="10, 0" Click="InsertIntoStudents_Click"/>
+                <TextBox Grid.Row="1" Grid.Column="1" Name="InsertId" Width="70" Margin="10, 0"/>
+                <TextBox Grid.Row="1" Grid.Column="2" Name="InsertGender" Width="70" Margin="10, 0"/>
+                <TextBox Grid.Row="1" Grid.Column="3" Name="InsertFirstName" Width="70" Margin="10, 0"/>
+                <TextBox Grid.Row="1" Grid.Column="4" Name="InsertLastName" Width="70" Margin="10, 0"/>
+                <TextBox Grid.Row="1" Grid.Column="5" Name="InsertSalary" Width="70" Margin="10, 0"/>
+                <Button Grid.Row="1" Grid.Column="6" Name="InsertIntoEmployees" Content="Go!" Width="Auto" Margin="10, 0" Click="InsertIntoEmployees_Click"/>
                 <Label Grid.Row="3" Grid.Column="0" Content="SELECT" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
                 <TextBox Grid.Row="3" Grid.Column="1" Name="ColumnSelector" Width="70" Margin="10, 0"/>
-                <Label Grid.Row="3" Grid.Column="2" Content="FROM Students" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
-                <Button Grid.Row="3" Grid.Column="4" Name="SelectFromStudents" Content="Go!" Width="Auto" Margin="10, 0" Click="SelectFromStudents_Click"/>
+                <Label Grid.Row="3" Grid.Column="2" Content="FROM Employees" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
+                <Button Grid.Row="3" Grid.Column="6" Name="SelectFromEmployees" Content="Go!" Width="Auto" Margin="10, 0" Click="SelectFromEmployees_Click"/>
+                <Label Grid.Row="5" Grid.Column="1" Content="Gender" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="5" Grid.Column="2" Content="Name" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="5" Grid.Column="3" Content="First Name" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="5" Grid.Column="4" Content="Salary" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="5" Grid.Column="5" Content="WHERE" Background="LightGray" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <Label Grid.Row="5" Grid.Column="0" Content="UPDATE Employees SET" HorizontalContentAlignment="Center" Background="LightGray" Margin="10,0"/>
+                <TextBox Grid.Row="6" Grid.Column="1" Name="UpdateGender" Width="70" Margin="10, 0"/>
+                <TextBox Grid.Row="6" Grid.Column="2" Name="UpdateFirstName" Width="70" Margin="10, 0"/>
+                <TextBox Grid.Row="6" Grid.Column="3" Name="UpdateLastName" Width="70" Margin="10, 0"/>
+                <TextBox Grid.Row="6" Grid.Column="4" Name="UpdateSalary" Width="70" Margin="10, 0"/>
+                <StackPanel Grid.Row="6" Grid.Column="5" Orientation="Horizontal">
+                    <Label Grid.Row="8" Grid.Column="2" Content="Id = " HorizontalContentAlignment="Center" HorizontalAlignment="Center" Background="LightGray" Width="50" Margin="10,0,0,0"/>
+                    <TextBox Grid.Row="8" Grid.Column="4" Name="UpdateId" Width="70" Margin="0, 0,10,0"/>
+                </StackPanel>
+                <Button Grid.Row="6" Grid.Column="6" Name="UpdateEmployees" Content="Go!" Width="Auto" Margin="10, 0" Click="UpdateEmployees_Click"/>
+                <Label Grid.Row="8" Grid.Column="0" Content="DELETE FROM Employees" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
+                <Label Grid.Row="8" Grid.Column="1" Content="WHERE" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
+                <Label Grid.Row="8" Grid.Column="2" Content="Id" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Background="LightGray" Width="50" Margin="10,0"/>
+                <Label Grid.Row="8" Grid.Column="3" Content="=" HorizontalContentAlignment="Center" HorizontalAlignment="Center" Background="LightGray" Width="50" Margin="10,0"/>
+                <TextBox Grid.Row="8" Grid.Column="4" Name="DeleteId" Width="70" Margin="10, 0"/>
+                <Button Grid.Row="8" Grid.Column="6" Name="DeleteFromEmployees" Content="Go!" Width="Auto" Margin="10, 0" Click="DeleteFromEmployees_Click"/>
             </Grid>
             <!--</StackPanel>-->
-            <DataGrid Name="StudentsTable" AutoGenerateColumns="False" VerticalScrollBarVisibility="Visible" GridLinesVisibility="All" IsReadOnly="False" HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Height="Auto" MaxHeight="500" Margin="20">
+            <DataGrid Name="EmployeesTable" AutoGenerateColumns="False" VerticalScrollBarVisibility="Visible" GridLinesVisibility="All" IsReadOnly="False" HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Height="Auto" MaxHeight="500" Margin="20">
                 <!--<DataGrid.Columns>
                     <DataGridTextColumn Header="Id" Binding="{Binding Attributes[Id]}"/>
                     <DataGridTextColumn Header="Name" Binding="{Binding Attributes[Name]}"/>
@@ -68,12 +100,14 @@
                 </DataGrid.Columns>-->
             </DataGrid>
         </StackPanel>
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Grid.Row="1" Height="Auto" Width="1000" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="20">
+        <StackPanel Name="TreeView" HorizontalAlignment="Center" VerticalAlignment="Top" Height="Auto" Grid.Column="1" Margin="20">
+            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="B+ Tree" FontSize="20" FontWeight="Bold" Margin="10"/>
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="800" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="20">
             <!--<StackPanel Name="Main" Height="Auto"/>-->
             <TreeView Name="Tree">
                 <TreeView.ItemTemplate>
                     <HierarchicalDataTemplate DataType="{x:Type local:ViewNode}" ItemsSource="{Binding Children}">
-                        <StackPanel>
+                        <StackPanel Margin="30,20">
                             <TextBlock Margin="10" Text="{Binding Title}"/>
                             <Controls:DropDownButton
                                 HorizontalAlignment="Left"
@@ -87,7 +121,8 @@
                 </TreeView.ItemTemplate>
             </TreeView>
         </ScrollViewer>
-        <!--<ListView HorizontalAlignment="Left" Height="100" Margin="913,275,-221,0" VerticalAlignment="Top" Width="100">
+        </StackPanel>
+            <!--<ListView HorizontalAlignment="Left" Height="100" Margin="913,275,-221,0" VerticalAlignment="Top" Width="100">
             <ListView.View>
                 <GridView>
                     <GridViewColumn/>

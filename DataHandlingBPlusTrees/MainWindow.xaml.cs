@@ -25,53 +25,59 @@ namespace DataHandlingBPlusTrees
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-        public string TestRelationName { get; set; } = "Students";
-        Relation rel { get; set; }
-        private List<Tuple<Point, Point>> LinkedListArrowCoords { get; set; } = new List<Tuple<Point, Point>>();
+        private BPlusTree<int> tree;
+        private int recordCount = 10000;
+        Employee defaultE = Employee.Empty;
 
-        private void DisplayRelation(string[] columns = null)
+        private void DisplayRelation(int key1, int key2, string[] columns = null)
         {
-            List<Record> records = rel.File.Read();
-            StudentsTable.ItemsSource = null;
-            StudentsTable.Columns.Clear();
-            StudentsTable.ItemsSource = records;
+            List<RecordPointer> employeesRP = tree.FindRange(key1, key2);
+            List<Employee> employees = new List<Employee>();
+            employeesRP.ForEach(rp => employees.Add(defaultE.GetRecord(rp.Block, rp.Offset)));
+            employees.ForEach(e => { e.FirstName = e.FirstName.TrimEnd('\0'); e.LastName = e.LastName.TrimEnd('\0'); });
+            EmployeesTable.ItemsSource = null;
+            EmployeesTable.Columns.Clear();
+            EmployeesTable.ItemsSource = employees;
             if (columns == null)
             {
-                columns = rel.AttributeNames.ToArray();
+                columns = new string[]
+                {
+                    "Id",
+                    "Gender",
+                    "Salary",
+                    "FirstName",
+                    "LastName"
+                };
             }
             foreach (string column in columns)
             {
-                StudentsTable.Columns.Add(new DataGridTextColumn
+                EmployeesTable.Columns.Add(new DataGridTextColumn
                 {
-                    Binding = new Binding($"Attributes[{column}]"),
+                    Binding = new Binding($"{column}"),
                     Header = column
                 });
             }
         }
 
-        public MainWindow()
+        private void BuildTree(int degree, SortedDictionary<int, RecordPointer> ids)
         {
-            InitializeComponent();
-
-            int recordCount = 10000;
-            int degree = 102;
-            BPlusTree<int> tree;
-            SortedDictionary<int, RecordPointer> ids = new SortedDictionary<int, RecordPointer>();
-
-            if (new FileInfo(Employee.PathName()).Length == 0)
-            {
-                Database.CreateMock(recordCount);
-            }
-
-            Employee e = Employee.Empty;
             int block = 0;
             int offset = 0;
             for (int i = 0; i < recordCount; i++)
             {
-                Console.WriteLine("+++++++++" + e.GetRecord(block, offset));
-                ids.Add(e.GetRecord(block, offset).Id, new RecordPointer(block, offset));
-                offset += e.RecordSize();
-                if (Block.Size() - offset < e.RecordSize())
+                Console.WriteLine("+++++++++" + defaultE.GetRecord(block, offset));
+                Employee current = defaultE.GetRecord(block, offset);
+                if (current.Id > 0)
+                {
+                    ids.Add(current.Id, new RecordPointer(block, offset));
+                }
+                else
+                {
+                    offset += defaultE.RecordSize();
+                    continue;
+                }
+                offset += defaultE.RecordSize();
+                if (Block.Size() - offset < defaultE.RecordSize())
                 {
                     offset = 0;
                     block++;
@@ -79,10 +85,32 @@ namespace DataHandlingBPlusTrees
             }
 
             tree = BPlusTree<int>.BuildGroundUp(degree, ids);
+        }
+
+        public void DisplayTree()
+        {
+            Tree.Items.Clear();
             ViewNode rootView = tree.Display();
             Tree.Items.Add(rootView);
+        }
 
-            //DisplayRelation();
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            int degree = 102;
+            SortedDictionary<int, RecordPointer> ids = new SortedDictionary<int, RecordPointer>();
+
+            if (!File.Exists(Employee.PathName()))
+            {
+                Database.CreateMock(recordCount);
+            }
+
+            BuildTree(degree, ids);
+
+            DisplayTree();
+
+            DisplayRelation(1, recordCount);
 
             //List<Employee> employees = new List<Employee>();
             //for (int i = 0; i < 1000; i++)
@@ -243,26 +271,26 @@ namespace DataHandlingBPlusTrees
         //    }
         //}
 
-        private void DrawLinkedList()
-        {
-            List<Tuple<Point, Point>> c = LinkedListArrowCoords;
-            if (!LinkedListArrowCoords.Any())
-            {
-                Console.WriteLine("-------------List is empty");
-            }
-            foreach (Tuple<Point, Point> el in c)
-            {
-                Console.WriteLine("------- Points are" + el.Item1.ToString() + " ; " + el.Item2.ToString());
-            }
-            for (int i = 0; i < LinkedListArrowCoords.Count; i++)
-            {
-                if (i == LinkedListArrowCoords.Count - 1)
-                {
-                    break;
-                }
-                this.AddChild(new Line { Stroke = Brushes.PowderBlue, StrokeThickness = 2, X1 = c[i].Item1.X, Y1 = c[i].Item1.Y, X2 = c[i+1].Item2.X, Y2 = c[i+1].Item2.Y });
-            }
-        }
+        //private void DrawLinkedList()
+        //{
+        //    List<Tuple<Point, Point>> c = LinkedListArrowCoords;
+        //    if (!LinkedListArrowCoords.Any())
+        //    {
+        //        Console.WriteLine("-------------List is empty");
+        //    }
+        //    foreach (Tuple<Point, Point> el in c)
+        //    {
+        //        Console.WriteLine("------- Points are" + el.Item1.ToString() + " ; " + el.Item2.ToString());
+        //    }
+        //    for (int i = 0; i < LinkedListArrowCoords.Count; i++)
+        //    {
+        //        if (i == LinkedListArrowCoords.Count - 1)
+        //        {
+        //            break;
+        //        }
+        //        this.AddChild(new Line { Stroke = Brushes.PowderBlue, StrokeThickness = 2, X1 = c[i].Item1.X, Y1 = c[i].Item1.Y, X2 = c[i + 1].Item2.X, Y2 = c[i + 1].Item2.Y });
+        //    }
+        //}
 
         //public void HoverOverKey(object sender, MouseEventArgs e)
         //{
@@ -276,15 +304,15 @@ namespace DataHandlingBPlusTrees
             //Console.WriteLine("-----Midpoint of " + s.ToString() + " is " + s.PointToScreen(new Point(s.ActualWidth/2, 0)));
         }
 
-        public void LeafFinishedLoading(object sender, RoutedEventArgs e)
-        {
-            StackPanel s = sender as StackPanel;
-            Point start = s.PointToScreen(new Point(s.ActualWidth - 5, s.ActualHeight / 2));
-            Point end = s.PointToScreen(new Point(5, s.ActualHeight / 2));
-            LinkedListArrowCoords.Add(new Tuple<Point, Point>(start, end));
-            //Console.WriteLine("-----LL arrow starting point from " + s.ToString() + " is " + start);
-            //Console.WriteLine("-----LL arrow ending point from " + s.ToString() + " is " + end);
-        }
+        //public void LeafFinishedLoading(object sender, RoutedEventArgs e)
+        //{
+        //    StackPanel s = sender as StackPanel;
+        //    Point start = s.PointToScreen(new Point(s.ActualWidth - 5, s.ActualHeight / 2));
+        //    Point end = s.PointToScreen(new Point(5, s.ActualHeight / 2));
+        //    LinkedListArrowCoords.Add(new Tuple<Point, Point>(start, end));
+        //    //Console.WriteLine("-----LL arrow starting point from " + s.ToString() + " is " + start);
+        //    //Console.WriteLine("-----LL arrow ending point from " + s.ToString() + " is " + end);
+        //}
 
         public void StackPanelSizeChanged(object sender, SizeChangedEventArgs e)
         {
@@ -296,27 +324,58 @@ namespace DataHandlingBPlusTrees
             //Console.WriteLine("----------------" + (sender as Border).PointToScreen(new Point(0, 0)));
         }
 
-        public void TreeLoaded(object sender, RoutedEventArgs e)
+        //public void TreeLoaded(object sender, RoutedEventArgs e)
+        //{
+        //    DrawLinkedList();
+        //}
+
+        private void InsertIntoEmployees_Click(object sender, RoutedEventArgs e)
         {
-            DrawLinkedList();
+            //Record rec = new Record(rel.AttributeNames, new List<string> {
+            //    Id.Text,
+            //    Name.Text,
+            //    FirstName.Text
+            //});
+            //rel.File.WriteRecord(rec.ToString());
+            Employee em = new Employee()
+            {
+                Id = ParseTextBox(InsertId),
+                Gender = InsertGender.Text.ToCharArray()[0],
+                FirstName = InsertFirstName.Text,
+                LastName = InsertLastName.Text,
+                Salary = ParseTextBox(InsertSalary)
+            };
+
+            RecordPointer previousEmRp = tree.Find(em.Id - 1);
+            RecordPointer emRp = new RecordPointer(defaultE.GetCache().FindEmptyRecordInBlock(previousEmRp.Block));
+
+            if (emRp.CompareTo(RecordPointer.Empty) == 0)
+            {
+                int block = defaultE.GetCache().MakeNewBlock();
+                emRp.Block = block;
+                emRp.Offset = 0;
+            }
+
+            tree.Insert(em.Id, emRp);
+            em.SetRecord(em, emRp.Block, emRp.Offset);
+            recordCount++;
+
+            DisplayRelation(1, recordCount);
+            DisplayTree();
         }
 
-        private void InsertIntoStudents_Click(object sender, RoutedEventArgs e)
+        private int ParseTextBox(TextBox tb)
         {
-            Record rec = new Record(rel.AttributeNames, new List<string> {
-                Id.Text,
-                Name.Text,
-                FirstName.Text
-            });
-            rel.File.WriteRecord(rec.ToString());
-            DisplayRelation();
+            int x = 0;
+            int.TryParse(tb.Text, out x);
+            return x;
         }
 
-        private void SelectFromStudents_Click(object sender, RoutedEventArgs e)
+        private void SelectFromEmployees_Click(object sender, RoutedEventArgs e)
         {
             if (ColumnSelector.Text == "*")
             {
-                DisplayRelation();
+                DisplayRelation(1, recordCount);
             }
             else
             {
@@ -324,10 +383,46 @@ namespace DataHandlingBPlusTrees
                 for (int i = 0; i < columns.Length; i++)
                 {
                     columns[i] = columns[i].Trim();
-                    columns[i] = columns[i].ToLower();
+                    //columns[i] = columns[i].ToLower();
                 }
-                DisplayRelation(columns);
+                DisplayRelation(1, recordCount, columns);
             }
+        }
+
+        private void DeleteFromEmployees_Click(object sender, RoutedEventArgs e)
+        {
+            int id = 0;
+            int.TryParse(DeleteId.Text, out id);
+            RecordPointer emRp = tree.Delete(id);
+            if (emRp.CompareTo(RecordPointer.Empty) != 0) Employee.Empty.DeleteRecord(emRp.Block, emRp.Offset);
+
+            DisplayRelation(1, recordCount);
+            DisplayTree();
+        }
+
+        private void UpdateEmployees_Click(object sender, RoutedEventArgs e)
+        {
+            int id = 0;
+            int.TryParse(UpdateId.Text, out id);
+            Employee em = Employee.Empty;
+            RecordPointer emRp = tree.Find(id);
+            if (emRp.CompareTo(RecordPointer.Empty) != 0)
+            {
+                int salary = 0;
+                em = em.GetRecord(emRp.Block, emRp.Offset);
+                if (UpdateGender.Text.Trim().Length != 0) em.Gender = UpdateGender.Text.Trim().ToCharArray()[0];
+                if (UpdateFirstName.Text.Trim().Length != 0) em.FirstName = UpdateFirstName.Text.Trim();
+                if (UpdateLastName.Text.Trim().Length != 0) em.LastName = UpdateLastName.Text.Trim();
+                if (UpdateSalary.Text.Trim().Length != 0)
+                {
+                    int.TryParse(UpdateSalary.Text.Trim(), out salary);
+                    em.Salary = salary;
+                }
+                em.SetRecord(em, emRp.Block, emRp.Offset);
+            }
+
+            DisplayRelation(1, recordCount);
+            DisplayTree();
         }
     }
 }

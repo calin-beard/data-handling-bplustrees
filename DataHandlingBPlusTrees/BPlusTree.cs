@@ -109,18 +109,14 @@ namespace DataHandlingBPlusTrees
             {
                 tryKeyCountLeaf = (2 * Degree) / 3;
             }
-            Tuple<int, int> keyCountNodeCountLeafs = GetKeyCountNodeCountLevel(tryKeyCountLeaf, totalKeyCount);
-            int keyCountLeaf = keyCountNodeCountLeafs.Item1;
-            int nodeCountLeafLevel = keyCountNodeCountLeafs.Item2;
+            Tuple<int, int> keyCountNodeCountLevel = GetKeyCountNodeCountLevel(tryKeyCountLeaf, totalKeyCount);
+            int keyCountLevel = keyCountNodeCountLevel.Item1;
+            int nodeCountLevel = keyCountNodeCountLevel.Item2;
 
             int counter = 0;
-            results = new List<N>(nodeCountLeafLevel);
-            foreach (Dictionary<K, P> shard in elements.GroupBy(x => counter++ / keyCountLeaf).Select(g => g.ToDictionary(h => h.Key, h => h.Value)))
+            results = new List<N>(nodeCountLevel);
+            foreach (Dictionary<K, P> shard in elements.GroupBy(x => counter++ / keyCountLevel).Select(g => g.ToDictionary(h => h.Key, h => h.Value)))
             {
-                if (typeof(N) == typeof(InternalNode))
-                {
-                    shard.Remove(shard.Keys.First());
-                }
                 N node = tree.NewNode<N>();
                 node.QuickFill(shard);
                 results.Add(node);
@@ -151,18 +147,18 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        public void Delete(K value)
+        public RecordPointer Delete(K value)
         {
-            Root.DeleteValue(value);
+            return Root.DeleteValue(value);
         }
 
         public static Tuple<int, int> GetKeyCountNodeCountLevel(int keyCountNode, int totalKeyCount)
         {
             if (totalKeyCount % keyCountNode >= Node.MinKeys())
             {
-                return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode);
+                return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode + 1);
             }
-            return GetKeyCountNodeCountLevel(keyCountNode - 2, totalKeyCount);
+            return GetKeyCountNodeCountLevel(keyCountNode - 3, totalKeyCount);
         }
 
         public ViewNode Display()
@@ -194,7 +190,7 @@ namespace DataHandlingBPlusTrees
 
             public abstract void InsertValue(K value, RecordPointer rp);
 
-            public abstract void DeleteValue(K value);
+            public abstract RecordPointer DeleteValue(K value);
 
             public void CreateNewRoot(Node brother)
             {
@@ -325,10 +321,10 @@ namespace DataHandlingBPlusTrees
                 }
             }
 
-            public override void DeleteValue(K value)
+            public override RecordPointer DeleteValue(K value)
             {
                 Node child = this.GetChild(value);
-                child.DeleteValue(value);
+                RecordPointer result = child.DeleteValue(value);
                 if (child.IsUnderflow())
                 {
                     Node childLeftBrother = this.GetChildLeftBrother(value);
@@ -348,6 +344,7 @@ namespace DataHandlingBPlusTrees
                         BPTree.Root.Parent = null;
                     }
                 }
+                return result;
             }
 
             public override K GetFirstLeafKey()
@@ -477,7 +474,7 @@ namespace DataHandlingBPlusTrees
             public override ViewNode CreateViewNode()
             {
                 ViewNode vn = new ViewNode() { Title = this.ToString() };
-                foreach(K key in this.Keys)
+                foreach (K key in this.Keys)
                 {
                     vn.Keys.Add(key.ToString());
                 }
@@ -575,14 +572,17 @@ namespace DataHandlingBPlusTrees
                 }
             }
 
-            public override void DeleteValue(K value)
+            public override RecordPointer DeleteValue(K value)
             {
+                RecordPointer result = RecordPointer.Empty;
                 int where = this.Keys.BinarySearch(value);
                 if (where >= 0)
                 {
+                    result = this.RecordPointers.ElementAt(where);
                     this.Keys.RemoveAt(where);
                     this.RecordPointers.RemoveAt(where);
                 }
+                return result;
             }
 
             public override K GetFirstLeafKey()

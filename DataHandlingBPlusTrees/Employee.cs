@@ -4,10 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
 
 namespace DataHandlingBPlusTrees
 {
-    public class Employee : SerializableRecord<Employee>
+    public class Employee : SerializableRecord<Employee>, IComparable
     {
         public int Id { get; set; }
         public char Gender { get; set; }
@@ -22,13 +23,14 @@ namespace DataHandlingBPlusTrees
             Cache = new BlockCache(PathName());
             Empty.Id = -1;
             Empty.Salary = 0;
-            Empty.Gender = 'M';
-            Empty.FirstName = Empty.LastName = "";
+            Empty.Gender = 'Z';
+            Empty.FirstName = new string('\0', 15);
+            Empty.LastName = new string('\0', 15);
         }
 
         public override int RecordSize()
         {
-            return sizeof(int) + sizeof(char) + sizeof(int) + 2 * 15;
+            return sizeof(int) + 1 /*size of chars M or F*/ + sizeof(int) + Employee.Empty.FirstName.Length + Employee.Empty.LastName.Length + 2 /*BinaryWriter writes the length of the string before the string itself*/;
         }
 
         public Employee() { }
@@ -38,8 +40,8 @@ namespace DataHandlingBPlusTrees
             this.Id = id;
             this.Gender = gender;
             this.Salary = salary;
-            this.FirstName = firstname;
-            this.LastName = lastname;
+            this.FirstName = firstname + new string('\0', 15 - firstname.Length);
+            this.LastName = lastname + new string('\0', 15 - lastname.Length);
         }
 
         protected override Employee ReadRecord(Block b, int offset)
@@ -81,10 +83,15 @@ namespace DataHandlingBPlusTrees
             return Employee.Empty;
         }
 
+        public override BlockCache GetCache()
+        {
+            return Employee.Cache;
+        }
+
         public override Block CreateEmptyBlock()
         {
             Block b = new Block();
-            using (MemoryStream ms = new MemoryStream(b.Bytes, 0, this.RecordSize()))
+            using (MemoryStream ms = new MemoryStream(b.Bytes, 0, b.Bytes.Length))
             {
                 using (BinaryWriter bw = new BinaryWriter(ms))
                 {
@@ -99,11 +106,6 @@ namespace DataHandlingBPlusTrees
                 }
             }
             return b;
-        }
-
-        public override BlockCache GetCache()
-        {
-            return Employee.Cache;
         }
 
         public static string PathName()
@@ -125,6 +127,16 @@ namespace DataHandlingBPlusTrees
                 this.FirstName.ToString(),
                 this.LastName.ToString(),
             });
+        }
+
+        public int CompareTo(object obj)
+        {
+            Employee e = (Employee)obj;
+            return this.Id.CompareTo(e.Id) != 0 ? this.Id.CompareTo(e.Id) :
+                this.Gender.CompareTo(e.Gender) != 0 ? this.Gender.CompareTo(e.Gender) :
+                    this.FirstName.CompareTo(e.FirstName) != 0 ? this.FirstName.CompareTo(e.FirstName) :
+                        this.LastName.CompareTo(e.LastName) != 0  ? this.LastName.CompareTo(e.LastName) : 
+                            this.Salary.CompareTo(e.Salary);
         }
     }
 }

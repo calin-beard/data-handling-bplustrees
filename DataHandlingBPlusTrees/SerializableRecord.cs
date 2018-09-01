@@ -20,8 +20,8 @@ namespace DataHandlingBPlusTrees
         // Is named BlockSize but returns FileSize where the cache is flushed
         public int BlockSize()
         {
-            Console.WriteLine("File size from block is " + this.GetCache().FileSize);
-            return this.GetCache().FileSize;
+            Console.WriteLine("File size from block is " + this.GetCache().GetFileSize());
+            return this.GetCache().GetFileSize();
         }
 
         public int MaxRecords()
@@ -42,22 +42,6 @@ namespace DataHandlingBPlusTrees
         public void DeleteRecord(int block, int offset)
         {
             SetRecord(this.GetEmptyRecord(), block, offset);
-        }
-
-        public int MakeNewBlock()
-        {
-            int block = -1;
-            using (FileStream fs = new FileStream(this.GetPathName(), FileMode.OpenOrCreate))
-            {
-                fs.Seek(0, SeekOrigin.End);
-                Block b = CreateEmptyBlock();
-                fs.Write(b.Bytes, 0, b.Bytes.Length);
-                this.GetCache().FileSize++;
-                Console.WriteLine("File size after adding new block is " + this.GetCache().FileSize);
-                fs.Flush();
-            }
-            block = GetCache().FileSize - 1;
-            return block;
         }
     }
 }

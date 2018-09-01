@@ -9,7 +9,7 @@ namespace DataHandlingBPlusTrees
 {
     public class BlockCache
     {
-        public int FileSize { get; set; } = 0;
+        //public int FileSize { get; set; } = 0;
         private const short SIZE = 4;
         private int[] idx;
         private Block[] blocks;
@@ -19,18 +19,6 @@ namespace DataHandlingBPlusTrees
         public BlockCache(string _pathName)
         {
             this.pathName = _pathName;
-            if (File.Exists(Employee.PathName()))
-            {
-                this.FileSize = (int)(new FileInfo(Employee.PathName())).Length;
-            }
-            else
-            {
-                using (FileStream f = File.Create(this.pathName))
-                {
-                    this.FileSize = (int)f.Length / Block.Size();
-                    Console.WriteLine("Initial file size is " + this.FileSize);
-                }
-            }
             oldest = 0;
             idx = new int[SIZE];
             blocks = new Block[SIZE];
@@ -39,6 +27,25 @@ namespace DataHandlingBPlusTrees
                 blocks[i] = new Block();
                 idx[i] = -1;
             }
+        }
+
+        public Tuple<int, int> FindEmptyRecordInBlock (int block)
+        {
+            Tuple<int, int> results = new Tuple<int, int>(-1, -1);
+            Block b = new Block();
+            using (FileStream fs = new FileStream(pathName, FileMode.OpenOrCreate))
+            {
+                fs.Seek(block * Block.Size(), SeekOrigin.Begin);
+                fs.Read(b.Bytes, 0, Block.Size());
+                for (int i = 0, step = Employee.Empty.RecordSize(); i < Block.Size() - step; i+=step)
+                {
+                    if (Employee.Empty.GetRecord(block, i).CompareTo(Employee.Empty) == 0)
+                    {
+                        results = new Tuple<int, int>(block, i);
+                    }
+                }
+            }
+            return results;
         }
 
         public Block GetBlock(int block)
@@ -99,6 +106,26 @@ namespace DataHandlingBPlusTrees
                 Console.WriteLine("---" + e.StackTrace);
             }
             return ob;
+        }
+
+        public int MakeNewBlock()
+        {
+            int block = -1;
+            using (FileStream fs = new FileStream(this.pathName, FileMode.OpenOrCreate))
+            {
+                fs.Seek(0, SeekOrigin.End);
+                Block b = Employee.Empty.CreateEmptyBlock();
+                fs.Write(b.Bytes, 0, b.Bytes.Length);
+                Console.WriteLine("File size after adding new block is " + this.GetFileSize());
+                fs.Flush();
+            }
+            block = (GetFileSize() - 1) / 4096;
+            return block;
+        }
+
+        public int GetFileSize()
+        {
+            return (int)(new FileInfo(Employee.PathName()).Length);
         }
     }
 }
