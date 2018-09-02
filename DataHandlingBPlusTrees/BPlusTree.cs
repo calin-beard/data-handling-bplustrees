@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DataHandlingBPlusTrees
 {
-    class BPlusTree<K> where K : IComparable
+    public class BPlusTree<K> where K : IComparable
     {
         private const int DEGREE = 6;
 
@@ -158,7 +158,7 @@ namespace DataHandlingBPlusTrees
             {
                 return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode + 1);
             }
-            return GetKeyCountNodeCountLevel(keyCountNode - 3, totalKeyCount);
+            return GetKeyCountNodeCountLevel(keyCountNode - 2, totalKeyCount);
         }
 
         public ViewNode Display()
@@ -240,10 +240,10 @@ namespace DataHandlingBPlusTrees
             {
                 return (int)Math.Ceiling((decimal)(BPlusTree<K>.Degree - 1) / 2);
             }
-            protected abstract int MaxKeys();
+            //protected abstract int MaxKeys();
 
-            protected abstract int MinPointers();
-            protected abstract int MaxPointers();
+            //protected abstract int MinPointers();
+            //protected abstract int MaxPointers();
 
             public abstract bool IsUnderflow();
 
@@ -377,17 +377,17 @@ namespace DataHandlingBPlusTrees
                 return brother;
             }
 
-            protected override int MaxKeys()
+            protected int MaxKeys()
             {
                 return BPlusTree<K>.Degree - 1;
             }
 
-            protected override int MinPointers()
+            protected int MinPointers()
             {
                 return (int)Math.Ceiling((decimal)BPlusTree<K>.Degree / 2);
             }
 
-            protected override int MaxPointers()
+            protected int MaxPointers()
             {
                 return BPlusTree<K>.Degree;
             }
@@ -616,17 +616,17 @@ namespace DataHandlingBPlusTrees
                 return brother;
             }
 
-            protected override int MaxKeys()
+            protected int MaxKeys()
             {
                 return BPlusTree<K>.Degree - 1;
             }
 
-            protected override int MinPointers()
+            protected int MinPointers()
             {
                 return (int)Math.Ceiling((decimal)(BPlusTree<K>.Degree - 1) / 2);
             }
 
-            protected override int MaxPointers()
+            protected int MaxPointers()
             {
                 return BPlusTree<K>.Degree - 1;
             }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DataHandlingBPlusTrees
 {
-    class RecordPointer : IComparable
+    public class RecordPointer : IComparable
     {
         public int Block { get; set; }
         public int Offset { get; set; }

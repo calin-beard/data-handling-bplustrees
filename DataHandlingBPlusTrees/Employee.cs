@@ -48,10 +48,13 @@ namespace DataHandlingBPlusTrees
         {
             //int offs = RecordSize() * offset;
             Employee emp = new Employee();
-            using (MemoryStream ms = new MemoryStream(b.Bytes, offset, RecordSize()))
+            MemoryStream ms = null;
+            try
             {
+                ms = new MemoryStream(b.Bytes, offset, RecordSize());
                 using (BinaryReader br = new BinaryReader(ms))
                 {
+                    ms = null;
                     emp.Id = br.ReadInt32();
                     emp.Gender = br.ReadChar();
                     emp.Salary = br.ReadInt32();
@@ -59,22 +62,36 @@ namespace DataHandlingBPlusTrees
                     emp.LastName = br.ReadString();
                 }
             }
+            finally
+            {
+                if (ms != null)
+                    ms.Dispose();
+            }
+
             return emp;
         }
 
         protected override void WriteRecord(Employee record, Block b, int offset)
         {
             //int offs = RecordSize() * offset;
-            using (MemoryStream ms = new MemoryStream(b.Bytes, offset, RecordSize()))
+            MemoryStream ms = null;
+            try
             {
+                ms = new MemoryStream(b.Bytes, offset, RecordSize());
                 using (BinaryWriter bw = new BinaryWriter(ms))
                 {
+                    ms = null;
                     bw.Write(record.Id);
                     bw.Write(record.Gender);
                     bw.Write(record.Salary);
                     bw.Write(record.FirstName);
                     bw.Write(record.LastName);
                 }
+            }
+            finally
+            {
+                if (ms != null)
+                    ms.Dispose();
             }
         }
 
@@ -88,13 +105,24 @@ namespace DataHandlingBPlusTrees
             return Employee.Cache;
         }
 
+        public static RecordPointer FindPreviousEmployee(BPlusTree<int> tree, int id)
+        {
+            RecordPointer result = tree.Find(id--);
+            if (result != null)
+                return result;
+            return FindPreviousEmployee(tree, id--);
+        }
+
         public override Block CreateEmptyBlock()
         {
             Block b = new Block();
-            using (MemoryStream ms = new MemoryStream(b.Bytes, 0, b.Bytes.Length))
+            MemoryStream ms = null;
+            try
             {
+                ms = new MemoryStream(b.Bytes, 0, b.Bytes.Length);
                 using (BinaryWriter bw = new BinaryWriter(ms))
                 {
+                    ms = null;
                     for (int i = 0; i < Block.Size() / this.RecordSize(); i++)
                     {
                         bw.Write(Employee.Empty.Id);
@@ -104,6 +132,11 @@ namespace DataHandlingBPlusTrees
                         bw.Write(Employee.Empty.LastName);
                     }
                 }
+            }
+            finally
+            {
+                if (ms != null)
+                    ms.Dispose();
             }
             return b;
         }
@@ -135,7 +168,7 @@ namespace DataHandlingBPlusTrees
             return this.Id.CompareTo(e.Id) != 0 ? this.Id.CompareTo(e.Id) :
                 this.Gender.CompareTo(e.Gender) != 0 ? this.Gender.CompareTo(e.Gender) :
                     this.FirstName.CompareTo(e.FirstName) != 0 ? this.FirstName.CompareTo(e.FirstName) :
-                        this.LastName.CompareTo(e.LastName) != 0  ? this.LastName.CompareTo(e.LastName) : 
+                        this.LastName.CompareTo(e.LastName) != 0 ? this.LastName.CompareTo(e.LastName) :
                             this.Salary.CompareTo(e.Salary);
         }
     }

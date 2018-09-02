@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DataHandlingBPlusTrees
 {
-    class ViewNode
+    public class ViewNode
     {
         public ViewNode()
         {

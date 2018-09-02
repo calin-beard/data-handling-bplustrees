@@ -29,20 +29,31 @@ namespace DataHandlingBPlusTrees
             }
         }
 
-        public Tuple<int, int> FindEmptyRecordInBlock (int block)
+        public Tuple<int, int> FindPlaceInFile(int startBlock)
+        {
+            Tuple<int, int> place = FindEmptyRecordInBlock(startBlock);
+            Tuple<int, int> notFound = new Tuple<int, int>(-1, -1);
+            int lastOverflowBlock = (GetFileSize() - 1) / 4096;
+            if (place.Equals(notFound))
+            {
+                place = FindEmptyRecordInBlock(lastOverflowBlock);
+                if (place.Equals(notFound))
+                {
+                    place = new Tuple<int, int>(MakeNewBlock(), 0);
+                }
+            }
+            return place;
+        }
+
+        private Tuple<int, int> FindEmptyRecordInBlock(int block)
         {
             Tuple<int, int> results = new Tuple<int, int>(-1, -1);
-            Block b = new Block();
-            using (FileStream fs = new FileStream(pathName, FileMode.OpenOrCreate))
+            for (int i = 0, step = Employee.Empty.RecordSize(); i < Block.Size() - step; i += step)
             {
-                fs.Seek(block * Block.Size(), SeekOrigin.Begin);
-                fs.Read(b.Bytes, 0, Block.Size());
-                for (int i = 0, step = Employee.Empty.RecordSize(); i < Block.Size() - step; i+=step)
+                if (Employee.Empty.GetRecord(block, i).CompareTo(Employee.Empty) == 0)
                 {
-                    if (Employee.Empty.GetRecord(block, i).CompareTo(Employee.Empty) == 0)
-                    {
-                        results = new Tuple<int, int>(block, i);
-                    }
+                    results = new Tuple<int, int>(block, i);
+                    break;
                 }
             }
             return results;
@@ -53,7 +64,7 @@ namespace DataHandlingBPlusTrees
             for (int i = 0; i < SIZE; i++)
                 if (idx[i] == block) return blocks[i];
             this.FlushLastBlock();
-            Console.WriteLine("Reading block " + block);
+            //Console.WriteLine("Reading block " + block);
             return this.ReadBlock(block);
         }
 
