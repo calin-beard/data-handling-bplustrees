@@ -5,7 +5,7 @@
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DataHandlingBPlusTrees" 
+        xmlns:self="clr-namespace:DataHandlingBPlusTrees" 
         mc:Ignorable="d"
         Title="Database Manager" Height="800" Width="1100"
         ResizeMode="CanResize"
@@ -30,7 +30,6 @@
         </Grid.ColumnDefinitions>
         <StackPanel Name="Employees" HorizontalAlignment="Center" VerticalAlignment="Top" Grid.Column="0" Width="Auto" Margin="20">
             <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="Employees" FontSize="20" FontWeight="Bold" Margin="10"/>
-            <!--<StackPanel Orientation="Horizontal" Name="RecordForm" HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Margin="20">-->
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -65,10 +64,16 @@
                 <TextBox Grid.Row="1" Grid.Column="4" Name="InsertLastName" Width="70" Margin="10, 0"/>
                 <TextBox Grid.Row="1" Grid.Column="5" Name="InsertSalary" Width="70" Margin="10, 0"/>
                 <Button Grid.Row="1" Grid.Column="6" Name="InsertIntoEmployees" Content="Go!" Width="Auto" Margin="10, 0" Click="InsertIntoEmployees_Click"/>
-                <Label Grid.Row="3" Grid.Column="0" Content="SELECT" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
-                <TextBox Grid.Row="3" Grid.Column="1" Name="ColumnSelector" Width="70" Margin="10, 0"/>
-                <Label Grid.Row="3" Grid.Column="2" Content="FROM Employees" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
-                <Button Grid.Row="3" Grid.Column="6" Name="SelectFromEmployees" Content="Go!" Width="Auto" Margin="10, 0" Click="SelectFromEmployees_Click"/>
+                <Label Grid.Row="3" Grid.Column="0" Content="SELECT" Height="25" VerticalAlignment="Top" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
+                <TextBox Grid.Row="3" Grid.Column="1" Name="ColumnSelector" Width="70" Height="25" VerticalAlignment="Top" Margin="10, 0"/>
+                <Label Grid.Row="3" Grid.Column="2" Content="FROM Employees" Height="25" VerticalAlignment="Top" HorizontalAlignment="Center" Background="LightGray" Margin="10,0"/>
+                <Label Grid.Row="3" Grid.Column="3" Content="WHERE Id" Background="LightGray" Height="25" VerticalAlignment="Top" HorizontalContentAlignment="Center" Margin="10,0"/>
+                <ListBox Name="SelectWhereListBox" Grid.Row="3" Grid.Column="4">
+                    <ListBoxItem Content="="/>
+                    <ListBoxItem Content="BETWEEN"/>
+                </ListBox>
+                <TextBox Grid.Row="3" Grid.Column="5" Name="SelectWhereId" Width="70" Height="25" VerticalAlignment="Top" Margin="10, 0"/>
+                <Button Grid.Row="3" Grid.Column="6" Name="SelectFromEmployees" Content="Go!" Height="25" VerticalAlignment="Top" Margin="10, 0" Click="SelectFromEmployees_Click"/>
                 <Label Grid.Row="5" Grid.Column="1" Content="Gender" HorizontalContentAlignment="Center" Margin="10,0"/>
                 <Label Grid.Row="5" Grid.Column="2" Content="Name" HorizontalContentAlignment="Center" Margin="10,0"/>
                 <Label Grid.Row="5" Grid.Column="3" Content="First Name" HorizontalContentAlignment="Center" Margin="10,0"/>
@@ -91,22 +96,14 @@
                 <TextBox Grid.Row="8" Grid.Column="4" Name="DeleteId" Width="70" Margin="10, 0"/>
                 <Button Grid.Row="8" Grid.Column="6" Name="DeleteFromEmployees" Content="Go!" Width="Auto" Margin="10, 0" Click="DeleteFromEmployees_Click"/>
             </Grid>
-            <!--</StackPanel>-->
-            <DataGrid Name="EmployeesTable" AutoGenerateColumns="False" VerticalScrollBarVisibility="Visible" GridLinesVisibility="All" IsReadOnly="False" HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Height="Auto" MaxHeight="500" Margin="20">
-                <!--<DataGrid.Columns>
-                    <DataGridTextColumn Header="Id" Binding="{Binding Attributes[Id]}"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Attributes[Name]}"/>
-                    <DataGridTextColumn Header="First Name" Binding="{Binding Attributes[FirstName]}"/>
-                </DataGrid.Columns>-->
-            </DataGrid>
+            <DataGrid Name="EmployeesTable" AutoGenerateColumns="False" VerticalScrollBarVisibility="Visible" GridLinesVisibility="All" IsReadOnly="False" HorizontalAlignment="Center" VerticalAlignment="Center" Width="Auto" Height="Auto" MaxHeight="500" Margin="20"/>
         </StackPanel>
         <StackPanel Name="TreeView" HorizontalAlignment="Center" VerticalAlignment="Top" Height="Auto" Grid.Column="1" Margin="20">
             <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="B+ Tree" FontSize="20" FontWeight="Bold" Margin="10"/>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Height="800" Width="Auto" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="20">
-            <!--<StackPanel Name="Main" Height="Auto"/>-->
             <TreeView Name="Tree">
                 <TreeView.ItemTemplate>
-                    <HierarchicalDataTemplate DataType="{x:Type local:ViewNode}" ItemsSource="{Binding Children}">
+                    <HierarchicalDataTemplate DataType="{x:Type self:ViewNode}" ItemsSource="{Binding Children}">
                         <StackPanel Margin="30,20">
                             <TextBlock Margin="10" Text="{Binding Title}"/>
                             <Controls:DropDownButton
@@ -122,12 +119,5 @@
             </TreeView>
         </ScrollViewer>
         </StackPanel>
-            <!--<ListView HorizontalAlignment="Left" Height="100" Margin="913,275,-221,0" VerticalAlignment="Top" Width="100">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn/>
-                </GridView>
-            </ListView.View>
-        </ListView>-->
     </Grid>
 </Controls:MetroWindow>

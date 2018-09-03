@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -29,7 +28,7 @@ namespace DataHandlingBPlusTrees
         private BPlusTree<int> tree;
         private int recordCount = 10000;
         Employee defaultE = Employee.Empty;
-        
+
         public MainWindow()
         {
             InitializeComponent();
@@ -51,11 +50,20 @@ namespace DataHandlingBPlusTrees
             this.Loaded += MainWindow_Loaded;
         }
 
-        private void DisplayRelation(int key1, int key2, string[] columns = null)
+        private void DisplayRelation(int key1, int key2 = 0, string[] columns = null)
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            List<RecordPointer> employeesRP = tree.FindRange(key1, key2);
+            List<RecordPointer> employeesRP = null;
+            if (key2 == 0)
+            {
+                employeesRP = new List<RecordPointer>();
+                employeesRP.Add(tree.Find(key1));
+            }
+            else
+            {
+                employeesRP = tree.FindRange(key1, key2);
+            }
             List<Employee> employees = new List<Employee>();
             employeesRP.ForEach(rp => employees.Add(defaultE.GetRecord(rp.Block, rp.Offset)));
             employees.ForEach(e => { e.FirstName = e.FirstName.TrimEnd('\0'); e.LastName = e.LastName.TrimEnd('\0'); });
@@ -177,17 +185,36 @@ namespace DataHandlingBPlusTrees
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
-            if (ColumnSelector.Text == "*")
+            string[] columns = null;
+            int[] keys = new int[2];
+            if (ColumnSelector.Text != "" && ColumnSelector.Text != "*")
             {
-                DisplayRelation(1, recordCount);
-            }
-            else
-            {
-                string[] columns = ColumnSelector.Text.Split(',');
+                columns = ColumnSelector.Text.Split(',');
                 for (int i = 0; i < columns.Length; i++)
                 {
                     columns[i] = columns[i].Trim();
                 }
+            }
+            if (SelectWhereListBox.SelectedIndex == 0)
+            {
+                int.TryParse(SelectWhereId.Text.Trim(), out keys[0]);
+                keys[1] = 0;
+            }
+            else if (SelectWhereListBox.SelectedIndex == 1)
+            {
+                string[] ids = SelectWhereId.Text.Split(',');
+                for (int i = 0; i < 2; i++)
+                {
+                    int.TryParse(ids[i].Trim(), out keys[i]);
+                }
+            }
+
+            if (keys[0] != 0)
+            {
+                DisplayRelation(keys[0], keys[1], columns);
+            }
+            else
+            {
                 DisplayRelation(1, recordCount, columns);
             }
             sw.Stop();
