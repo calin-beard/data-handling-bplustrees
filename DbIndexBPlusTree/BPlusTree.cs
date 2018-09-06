@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DataHandlingBPlusTrees
+namespace DbIndexBPlusTree
 {
     public class BPlusTree<K> where K : IComparable
     {
@@ -240,10 +240,6 @@ namespace DataHandlingBPlusTrees
             {
                 return (int)Math.Ceiling((decimal)(BPlusTree<K>.Degree - 1) / 2);
             }
-            //protected abstract int MaxKeys();
-
-            //protected abstract int MinPointers();
-            //protected abstract int MaxPointers();
 
             public abstract bool IsUnderflow();
 

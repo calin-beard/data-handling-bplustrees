@@ -1,13 +1,13 @@
 ﻿<Controls:MetroWindow  
-        x:Class="DataHandlingBPlusTrees.MainWindow"
+        x:Class="DbIndexBPlusTree.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:self="clr-namespace:DataHandlingBPlusTrees" 
+        xmlns:self="clr-namespace:DbIndexBPlusTree" 
         mc:Ignorable="d"
-        Title="Database Manager" Height="800" Width="1100"
+        Title="Database Manager" Height="950" Width="1550"
         ResizeMode="CanResize"
         WindowStartupLocation="CenterScreen">
     <Controls:MetroWindow.Resources>

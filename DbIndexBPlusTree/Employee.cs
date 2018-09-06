@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
-namespace DataHandlingBPlusTrees
+namespace DbIndexBPlusTree
 {
     public class Employee : SerializableRecord<Employee>, IComparable
     {

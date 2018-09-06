@@ -18,7 +18,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using MahApps.Metro.Controls;
 
-namespace DataHandlingBPlusTrees
+namespace DbIndexBPlusTree
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -151,10 +151,12 @@ namespace DataHandlingBPlusTrees
         {
             Stopwatch sw = new Stopwatch();
             sw.Start();
+            char gender = '-';
+            if (InsertGender.Text.ToCharArray().Length > 0) gender = InsertGender.Text.ToCharArray()[0];
             Employee em = new Employee()
             {
                 Id = ParseTextBox(InsertId),
-                Gender = InsertGender.Text.ToCharArray()[0],
+                Gender = gender,
                 FirstName = InsertFirstName.Text,
                 LastName = InsertLastName.Text,
                 Salary = ParseTextBox(InsertSalary)
