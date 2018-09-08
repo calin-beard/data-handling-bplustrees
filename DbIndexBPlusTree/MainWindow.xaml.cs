@@ -26,7 +26,7 @@ namespace DbIndexBPlusTree
     public partial class MainWindow : MetroWindow
     {
         private BPlusTree<int> tree;
-        private int recordCount = 10000;
+        private int recordCount = 100000;
         Employee defaultE = Employee.Empty;
 
         public MainWindow()
