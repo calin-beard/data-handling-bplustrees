@@ -63,18 +63,18 @@ namespace DbIndexBPlusTree
             return result;
         }
 
-        private static List<InternalNode> BuildUpperLevel<N>(BPlusTree<K> tree, SortedDictionary<K, N> nodes) where N : Node
+        private static List<InternalNode> BuildUpperLevel<N>(BPlusTree<K> tree, SortedDictionary<K, N> childNodes) where N : Node
         {
-            if (nodes.Count < Degree)
+            if (childNodes.Count < Degree)
             {
                 List<InternalNode> result = new List<InternalNode>(1);
                 InternalNode root = tree.NewInternalNode();
-                root.QuickFill(new Dictionary<K, N>(nodes));
+                root.QuickFill(new Dictionary<K, N>(childNodes));
                 result.Add(root);
                 return result;
             }
 
-            SortedDictionary<K, Node> castNodes = new SortedDictionary<K, Node>(nodes.ToDictionary(e => e.Key, e => (Node)e.Value));
+            SortedDictionary<K, Node> castNodes = new SortedDictionary<K, Node>(childNodes.ToDictionary(e => e.Key, e => (Node)e.Value));
             List<InternalNode> builtNodes = BuildLevel<InternalNode, Node>(tree, castNodes);
             Dictionary<K, InternalNode> internalNodes = builtNodes.ToDictionary(e => e.GetFirstLeafKey(), e => e);
             SortedDictionary<K, InternalNode> sortedInternalNodes = new SortedDictionary<K, InternalNode>(internalNodes);
@@ -100,16 +100,16 @@ namespace DbIndexBPlusTree
         {
             List<N> results;
             int totalKeyCount = elements.Count;
-            int tryKeyCountLeaf = 0;
+            int tryNodeKeyCountLevel = 0;
             if (typeof(N) == typeof(LeafNode))
             {
-                tryKeyCountLeaf = Degree - 1;
+                tryNodeKeyCountLevel = Degree - 1;
             }
             else
             {
-                tryKeyCountLeaf = (2 * Degree) / 3;
+                tryNodeKeyCountLevel = (2 * Degree) / 3;
             }
-            Tuple<int, int> keyCountNodeCountLevel = GetKeyCountNodeCountLevel(tryKeyCountLeaf, totalKeyCount);
+            Tuple<int, int> keyCountNodeCountLevel = GetKeyCountNodeCountLevel(tryNodeKeyCountLevel, totalKeyCount);
             int keyCountLevel = keyCountNodeCountLevel.Item1;
             int nodeCountLevel = keyCountNodeCountLevel.Item2;
 
@@ -125,20 +125,30 @@ namespace DbIndexBPlusTree
             return results;
         }
 
-        public RecordPointer Find(K value)
+        public static Tuple<int, int> GetKeyCountNodeCountLevel(int keyCountNode, int totalKeyCount)
         {
-            return Root.GetValue(value);
+            if (totalKeyCount % keyCountNode >= Node.MinKeys())
+            {
+                return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode + 1);
+            }
+            return GetKeyCountNodeCountLevel(keyCountNode - 3, totalKeyCount);
         }
 
-        public List<RecordPointer> FindRange(K value1, K value2)
+        public RecordPointer Find(K key)
         {
-            return this.Root.GetRange(value1, value2);
+            return Root.GetValue(key);
         }
 
-        public void Insert(K value, RecordPointer rp)
+        public List<RecordPointer> FindRange(K key1, K key2)
         {
-            Root.InsertValue(value, rp);
+            return this.Root.GetRange(key1, key2);
         }
+
+        public void Insert(K key, RecordPointer rp)
+        {
+            Root.InsertValue(key, rp);
+        }
+
         public void InsertMultiple(Dictionary<K, RecordPointer> elements)
         {
             foreach (KeyValuePair<K, RecordPointer> element in elements)
@@ -147,18 +157,9 @@ namespace DbIndexBPlusTree
             }
         }
 
-        public RecordPointer Delete(K value)
+        public RecordPointer Delete(K key)
         {
-            return Root.DeleteValue(value);
-        }
-
-        public static Tuple<int, int> GetKeyCountNodeCountLevel(int keyCountNode, int totalKeyCount)
-        {
-            if (totalKeyCount % keyCountNode >= Node.MinKeys())
-            {
-                return new Tuple<int, int>(keyCountNode, totalKeyCount / keyCountNode + 1);
-            }
-            return GetKeyCountNodeCountLevel(keyCountNode - 2, totalKeyCount);
+            return Root.DeleteValue(key);
         }
 
         public ViewNode Display()
@@ -184,13 +185,13 @@ namespace DbIndexBPlusTree
 
             public abstract void QuickFill<P>(Dictionary<K, P> elements) where P : class;
 
-            public abstract RecordPointer GetValue(K value);
+            public abstract RecordPointer GetValue(K key);
 
-            public abstract List<RecordPointer> GetRange(K value1, K value2);
+            public abstract List<RecordPointer> GetRange(K key1, K key2);
 
-            public abstract void InsertValue(K value, RecordPointer rp);
+            public abstract void InsertValue(K key, RecordPointer rp);
 
-            public abstract RecordPointer DeleteValue(K value);
+            public abstract RecordPointer DeleteValue(K key);
 
             public void CreateNewRoot(Node brother)
             {
@@ -290,20 +291,20 @@ namespace DbIndexBPlusTree
                 }
             }
 
-            public override RecordPointer GetValue(K value)
+            public override RecordPointer GetValue(K key)
             {
-                return this.GetChild(value).GetValue(value);
+                return this.GetChild(key).GetValue(key);
             }
 
-            public override List<RecordPointer> GetRange(K value1, K value2)
+            public override List<RecordPointer> GetRange(K key1, K key2)
             {
-                return this.GetChild(value1).GetRange(value1, value2);
+                return this.GetChild(key1).GetRange(key1, key2);
             }
 
-            public override void InsertValue(K value, RecordPointer rp)
+            public override void InsertValue(K key, RecordPointer rp)
             {
-                Node child = this.GetChild(value);
-                child.InsertValue(value, rp);
+                Node child = this.GetChild(key);
+                child.InsertValue(key, rp);
                 if (child.IsOverflow())
                 {
                     Node brother = child.Split();
@@ -317,14 +318,14 @@ namespace DbIndexBPlusTree
                 }
             }
 
-            public override RecordPointer DeleteValue(K value)
+            public override RecordPointer DeleteValue(K key)
             {
-                Node child = this.GetChild(value);
-                RecordPointer result = child.DeleteValue(value);
+                Node child = this.GetChild(key);
+                RecordPointer result = child.DeleteValue(key);
                 if (child.IsUnderflow())
                 {
-                    Node childLeftBrother = this.GetChildLeftBrother(value);
-                    Node childRightBrother = this.GetChildRightBrother(value);
+                    Node childLeftBrother = this.GetChildLeftBrother(key);
+                    Node childRightBrother = this.GetChildRightBrother(key);
                     Node left = childLeftBrother != null ? childLeftBrother : child;
                     Node right = childLeftBrother != null ? child : childRightBrother;
                     left.Merge(right);
@@ -398,9 +399,9 @@ namespace DbIndexBPlusTree
                 return this.Pointers.Count > this.MaxPointers();
             }
 
-            protected Node GetChild(K value)
+            protected Node GetChild(K key)
             {
-                int where = this.Keys.BinarySearch(value);
+                int where = this.Keys.BinarySearch(key);
                 int childIndex = where >= 0 ? where + 1 : -where - 1;
                 return this.Pointers.ElementAt(childIndex);
             }
@@ -411,9 +412,9 @@ namespace DbIndexBPlusTree
                 return where >= 0;
             }
 
-            protected void InsertChild(K value, Node child)
+            protected void InsertChild(K key, Node child)
             {
-                int where = this.Keys.BinarySearch(value);
+                int where = this.Keys.BinarySearch(key);
                 int childIndex = where >= 0 ? where + 1 : -where - 1;
                 if (where >= 0)
                 {
@@ -421,14 +422,14 @@ namespace DbIndexBPlusTree
                 }
                 else
                 {
-                    this.Keys.Insert(childIndex, value);
+                    this.Keys.Insert(childIndex, key);
                     this.Pointers.Insert(childIndex + 1, child);
                 }
             }
 
-            protected void DeleteChild(K value)
+            protected void DeleteChild(K key)
             {
-                int where = this.Keys.BinarySearch(value);
+                int where = this.Keys.BinarySearch(key);
                 if (where >= 0)
                 {
                     this.Keys.RemoveAt(where);
@@ -436,13 +437,13 @@ namespace DbIndexBPlusTree
                 }
                 else
                 {
-                    this.Pointers.Remove(this.GetChild(value));
+                    this.Pointers.Remove(this.GetChild(key));
                 }
             }
 
-            public Node GetChildLeftBrother(K value)
+            public Node GetChildLeftBrother(K key)
             {
-                int where = this.Keys.BinarySearch(value);
+                int where = this.Keys.BinarySearch(key);
                 int childIndex = where >= 0 ? where + 1 : -where - 1;
                 if (childIndex > 0)
                 {
@@ -451,9 +452,9 @@ namespace DbIndexBPlusTree
                 return null;
             }
 
-            public Node GetChildRightBrother(K value)
+            public Node GetChildRightBrother(K key)
             {
-                int where = this.Keys.BinarySearch(value);
+                int where = this.Keys.BinarySearch(key);
                 int childIndex = where >= 0 ? where + 1 : -where - 1;
                 if (childIndex < this.Keys.Capacity)
                 {
@@ -510,9 +511,9 @@ namespace DbIndexBPlusTree
                 }
             }
 
-            public override RecordPointer GetValue(K value)
+            public override RecordPointer GetValue(K key)
             {
-                int where = this.Keys.BinarySearch(value);
+                int where = this.Keys.BinarySearch(key);
                 if (where >= 0)
                 {
                     return this.RecordPointers.ElementAt(where);
@@ -520,20 +521,20 @@ namespace DbIndexBPlusTree
                 return null;
             }
 
-            public override List<RecordPointer> GetRange(K value1, K value2)
+            public override List<RecordPointer> GetRange(K key1, K key2)
             {
                 List<RecordPointer> results = new List<RecordPointer>();
                 LeafNode node = this;
                 while (node != null)
                 {
-                    IEnumerator<K> valueEnumerator = node.Keys.GetEnumerator();
+                    IEnumerator<K> keyEnumerator = node.Keys.GetEnumerator();
                     IEnumerator<RecordPointer> rpEnumerator = node.RecordPointers.GetEnumerator();
-                    while (valueEnumerator.MoveNext() && rpEnumerator.MoveNext())
+                    while (keyEnumerator.MoveNext() && rpEnumerator.MoveNext())
                     {
-                        K value = valueEnumerator.Current;
+                        K key = keyEnumerator.Current;
                         RecordPointer rp = rpEnumerator.Current;
-                        int c1 = value.CompareTo(value1);
-                        int c2 = value.CompareTo(value2);
+                        int c1 = key.CompareTo(key1);
+                        int c2 = key.CompareTo(key2);
                         if (c1 >= 0 && c2 <= 0)
                         {
                             results.Add(rp);
@@ -548,18 +549,18 @@ namespace DbIndexBPlusTree
                 return results;
             }
 
-            public override void InsertValue(K value, RecordPointer rp)
+            public override void InsertValue(K key, RecordPointer rp)
             {
-                int where = this.Keys.BinarySearch(value);
-                int valueIndex = where >= 0 ? where : -where - 1;
+                int where = this.Keys.BinarySearch(key);
+                int keyIndex = where >= 0 ? where : -where - 1;
                 if (where >= 0)
                 {
-                    this.RecordPointers[valueIndex] = rp;
+                    this.RecordPointers[keyIndex] = rp;
                 }
                 else
                 {
-                    this.Keys.Insert(valueIndex, value);
-                    this.RecordPointers.Insert(valueIndex, rp);
+                    this.Keys.Insert(keyIndex, key);
+                    this.RecordPointers.Insert(keyIndex, rp);
                 }
                 if (BPTree.Root.IsOverflow())
                 {
@@ -568,10 +569,10 @@ namespace DbIndexBPlusTree
                 }
             }
 
-            public override RecordPointer DeleteValue(K value)
+            public override RecordPointer DeleteValue(K key)
             {
                 RecordPointer result = RecordPointer.Empty;
-                int where = this.Keys.BinarySearch(value);
+                int where = this.Keys.BinarySearch(key);
                 if (where >= 0)
                 {
                     result = this.RecordPointers.ElementAt(where);
