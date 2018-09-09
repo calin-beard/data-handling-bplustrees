@@ -17,13 +17,6 @@ namespace DbIndexBPlusTree
         protected abstract void WriteRecord(R record, Block b, int offset);
         public abstract string GetPathName();
 
-        // Is named BlockSize but returns FileSize where the cache is flushed
-        public int BlockSize()
-        {
-            Console.WriteLine("File size from block is " + this.GetCache().GetFileSize());
-            return this.GetCache().GetFileSize();
-        }
-
         public int MaxRecords()
         {
             return Block.Size() / this.RecordSize();

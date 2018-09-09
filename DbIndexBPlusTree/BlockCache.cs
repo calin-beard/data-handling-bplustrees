@@ -9,7 +9,6 @@ namespace DbIndexBPlusTree
 {
     public class BlockCache
     {
-        //public int FileSize { get; set; } = 0;
         private const short SIZE = 4;
         private int[] idx;
         private Block[] blocks;
@@ -63,12 +62,11 @@ namespace DbIndexBPlusTree
         {
             for (int i = 0; i < SIZE; i++)
                 if (idx[i] == block) return blocks[i];
-            this.FlushLastBlock();
-            //Console.WriteLine("Reading block " + block);
+            this.FlushOldestBlock();
             return this.ReadBlock(block);
         }
 
-        private void FlushLastBlock()
+        private void FlushOldestBlock()
         {
             if (idx[oldest] < 0) return;
             try
@@ -92,7 +90,7 @@ namespace DbIndexBPlusTree
         {
             for (int i = 0; i < SIZE; i++)
             {
-                this.FlushLastBlock();
+                this.FlushOldestBlock();
                 idx[oldest] = -1;
                 oldest = (oldest + 1) % SIZE;
             }

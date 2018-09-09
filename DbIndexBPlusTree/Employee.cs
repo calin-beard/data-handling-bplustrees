@@ -46,7 +46,6 @@ namespace DbIndexBPlusTree
 
         protected override Employee ReadRecord(Block b, int offset)
         {
-            //int offs = RecordSize() * offset;
             Employee emp = new Employee();
             MemoryStream ms = null;
             try
@@ -73,7 +72,6 @@ namespace DbIndexBPlusTree
 
         protected override void WriteRecord(Employee record, Block b, int offset)
         {
-            //int offs = RecordSize() * offset;
             MemoryStream ms = null;
             try
             {
